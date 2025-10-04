@@ -14,6 +14,7 @@ model User {
     username String
     email    String @unique
     password String
+    storage  Int    @default(0)
 
     folders Folder[]
     files   File[]
@@ -22,24 +23,25 @@ model User {
 }
 
 model File {
-    id                     String   @id @default(cuid())
-    userId                 String
-    folderId               String?
-    originalName           String
-    displayName            String?
+    id           String  @id @default(cuid())
+    userId       String
+    folderId     String?
+    originalName String
+    displayName  String
 
-    cloudinaryUrl          String   @unique
+    cloudinaryUrl          String @unique
     cloudinaryPublicId     String
     cloudinaryResourceType String
     mimetype               String
     size                   Int
 
-    createdAt              DateTime @default(now())
-    updatedAt              DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+    folder Folder? @relation(fields: [folderId], references: [id], onDelete: Cascade)
 
+    @@unique([folderId, displayName])
     @@index([userId])
     @@index([folderId])
     @@map("files")
@@ -49,12 +51,17 @@ model Folder {
     id        String   @id @default(cuid())
     name      String
     userId    String
+    parentId  String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-    files File[]
+    user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    parent   Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+    children Folder[] @relation("FolderHierarchy")
+    files    File[]
 
+    @@unique([parentId, name])
     @@index([userId])
+    @@index([parentId])
     @@map("folders")
 }
