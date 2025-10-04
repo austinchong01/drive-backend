@@ -34,6 +34,8 @@ async function createFile(file, folderId, result, userId, displayName) {
   }
 }
 
+
+// do errors bubble up naturally? need try/catch?
 async function getFile(id) {
   const foundFile = await prisma.file.findUnique({ where: { id } });
 
@@ -41,6 +43,20 @@ async function getFile(id) {
 
   console.log("File found successfully:", foundFile.displayName);
   return foundFile;
+}
+
+// get all files given user and folder
+// do errors bubble up naturally? need try/catch
+async function getAllFiles(userId, folderId) {
+  const files = await prisma.file.findMany({
+    where: {
+      userId: userId,
+      folderId: folderId,
+    }
+  });
+
+  console.log(`Found ${files.length} file(s) for user ${userId} in folder ${folderId}`);
+  return files;
 }
 
 async function updateFileName(id, displayName) {
