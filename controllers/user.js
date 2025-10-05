@@ -6,26 +6,16 @@ const prisma = new PrismaClient();
 async function createUser(req, res) {
   const {username, email, password} = req.body;
 
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        password: hashedPassword,
-      }
-    });
-
-    console.log("User created successfully:", user.username);
-    return user;
-  } catch (error) {
-    if (error.code === "P2002") {
-      const field = error.meta?.target?.[0];
-      throw new Error(`${field} already exists`);
+  const user = await prisma.user.create({
+    data: {
+      username,
+      email,
+      password: hashedPassword,
     }
-    throw error;
-  }
+  });
+  return user;
 }
 
 async function findUser(id) {
