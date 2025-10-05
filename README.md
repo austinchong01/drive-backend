@@ -41,7 +41,7 @@ API Endpoints
   - PATCH /profile
     - update username
 
-  - DELETE /deleteUser
+  - DELETE /profile
     - delete user
 
 - Files

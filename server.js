@@ -1,4 +1,3 @@
-// server.js - Updated for production deployment
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -25,20 +24,26 @@ app.get('/health', (req, res) => {
 
 
 // Routes
-// app.use('/', require('./routes/index'));
-app.use('/user', require('./routes/users'));
-app.use('/files', require('./routes/files'));
+app.use('/', require('./routes/users'));
+// app.use('/files', require('./routes/files'));
 // app.use('/folders', require('./routes/folders'));
 
-// Set EJS as view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
+// Every thrown error in the application or the previous middleware 
+// function calling `next` with an error as an argument will 
+// eventually go to this middleware function
+app.use((err, req, res, next) => {
+  console.error(err);
+  // We can now specify the `err.statusCode` that exists in our 
+  // custom error class and if it does not exist it's probably 
+  // an internal server error
+  res.status(err.statusCode || 500).send(err.message);
 });
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
