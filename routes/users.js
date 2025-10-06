@@ -5,7 +5,7 @@ const validation = require("../middleware/validation");
 const authenticateToken = require("../config/jwt");
 
 router.post("/auth/register", validation.validateUser, user.createUser);
-router.post("/auth/login", user.login);
+router.post("/auth/login", validation.validateLogin, user.login);
 router.post("/auth/logout", authenticateToken, user.logout);
 
 router.get("/profile", authenticateToken, user.getUser);

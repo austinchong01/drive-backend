@@ -27,16 +27,16 @@ API Endpoints
 
 - Users
   - POST /auth/register
-    - INPUTS: username, email, password
+    - register a user
   - POST /auth/login
-    - INPUTS: email, password
+    - login
   - POST /auth/logout
-    - logout user, clear JWT
+    - logout
 
   - GET /profile
     - get all profile information
   - GET /storage
-    - get current storage usage
+    - get storage usage
 
   - PATCH /profile
     - update username
@@ -84,21 +84,25 @@ API Endpoints
   - GET /search?q={name}
     - Search folders and files by name
 
-Post Implementation
-
-- JWT/session handling
+Implementation
+- Custom Error Handling
+  - Prisma specific errors
+  
+- Sanitation/Validation
+- JWT session handling
 - Unit Testing
 - Integrated Testing
 - Rate Limiting
 - Performance Optimization
-- pagination
-- limiting query results
-- End-to-End Testing
+  - limiting query results
+- pagination?
+- Testing
+  - Unit
+  - Integrated
+  - End-to-End
 
 Frontend
-
 - Breadcrumb navigation
-- display storage usage
 
 Nice to Haves:
 

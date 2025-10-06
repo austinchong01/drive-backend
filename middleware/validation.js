@@ -1,5 +1,5 @@
 const { body, validationResult } = require("express-validator");
-const { BadRequestError } = require("../errors/CustomError")
+const { BadRequestError } = require("../errors/CustomError");
 
 const validateUser = [
   body("username")
@@ -20,8 +20,7 @@ const validateUser = [
     .withMessage("Email is required")
     .isEmail()
     .withMessage("Must be a valid email address")
-    .normalizeEmail()
-    .escape(),
+    .normalizeEmail(),
 
   body("password")
     .notEmpty()
@@ -36,7 +35,28 @@ const validateUser = [
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        throw new BadRequestError(errors.errors[0].msg);
+      throw new BadRequestError(errors.errors[0].msg);
+    }
+    next();
+  },
+];
+
+const validateLogin = [
+  body("email")
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Must be a valid email address")
+    .normalizeEmail(),
+
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required"),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new BadRequestError(errors.errors[0].msg);
     }
     next();
   },
@@ -64,4 +84,4 @@ const validateNewUsername = [
   },
 ];
 
-module.exports = { validateUser, validateNewUsername };
+module.exports = { validateUser, validateLogin, validateNewUsername };
