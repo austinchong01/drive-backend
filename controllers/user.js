@@ -7,8 +7,6 @@ const prisma = new PrismaClient();
 async function createUser(req, res) {
   const { username, email, password } = req.body;
 
-  // need to sanitize and validate !!!
-
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await prisma.user.create({
@@ -18,6 +16,8 @@ async function createUser(req, res) {
       password: hashedPassword,
     },
   });
+
+  // need return?
   return res.status(201).json(user);
 }
 
@@ -64,9 +64,12 @@ async function updateUsername(req, res) {
     data: {
       username: newName,
     },
+    select: {
+      username: true,
+    },
   });
 
-  // do I need to return updatedUser here?
+  // need return?
   return res.json(updatedUser);
 }
 
@@ -76,6 +79,7 @@ async function deleteUser(req, res) {
 
   const deletedUser = await prisma.user.delete({ where: { id: userId } });
 
+  // need return?
   return res.json(deletedUser);
 }
 
