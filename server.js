@@ -2,18 +2,13 @@ require('dotenv').config();
 require('express-async-errors');
 const express = require('express');
 const path = require('path');
-const passport = require('passport');
 const prismaErrorHandler = require('./errors/prismaErrorHandler');
 
 const app = express();
 
-// Passport
-app.use(passport.initialize());
-
 // Body parsing middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
 
 // Health check endpoint
 app.get('/health', (req, res) => {
