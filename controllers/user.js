@@ -1,10 +1,13 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
+const { NotFoundError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
 
 async function createUser(req, res) {
-  const {username, email, password} = req.body;
+  const { username, email, password } = req.body;
+
+  // need to sanitize and validate !!!
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -13,66 +16,73 @@ async function createUser(req, res) {
       username,
       email,
       password: hashedPassword,
-    }
+    },
   });
-  return user;
+  return res.status(201).json(user);
 }
 
-async function findUser(id) {
-  const foundUser = await prisma.user.findUnique({ where: { id } });
+async function getStorage(req, res) {
+  const { userId } = req.query; // FOR POSTMAN testing
+  // const userId = req.user.id; // From JWT middleware (later)
 
-  if (!foundUser) {
-    throw new Error(`User with id '${id}' not found`);
-  };
+  const foundUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      storage: true,
+    },
+  });
 
-  console.log("User found successfully:", foundUser.username);
-  return foundUser;
+  if (!foundUser) throw new NotFoundError(`User with id '${userId}' not found`);
+
+  return res.json(foundUser.storage);
 }
 
-// async function updateUsername(newUsername, email) {
-//   try {
-//     const updatedUsername = await prisma.user.update({
-//       where: { email },
-//       data: { username: newUsername },
-//     });
+async function findUser(req, res) {
+  const { userId } = req.query; // FOR POSTMAN testing
+  // const userId = req.user.id; // From JWT middleware (later)
 
-//     console.log("Username updated successfully:", updatedUsername);
-//     return updatedUsername;
-//   } catch (error) {
-//     console.error("Error updating username:", error);
+  const foundUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      username: true,
+    },
+  });
 
-//     if (error.code === "P2002") {
-//       const field = error.meta?.target?.[0];
-//       throw new Error(`'${field}' already exists`);
-//     }
+  if (!foundUser) throw new NotFoundError(`User with id '${userId}' not found`);
 
-//     if (error.code === "P2025")
-//       throw new Error(`User with email '${email}' not found`);
+  return res.json(foundUser);
+}
 
-//     throw error;
-//   }
-// }
+async function updateUsername(req, res) {
+  const { userId } = req.query; // FOR POSTMAN testing
+  // const userId = req.user.id; // From JWT middleware (later)
 
-async function deleteUser(id) {
-  try {
-    const deletedUser = await prisma.user.delete({ where: { id } });
+  const { newName } = req.body;
 
-    console.log("User deleted successfully:", deletedUser);
-    return deletedUser;
-  } catch (error) {
-    console.error("Error deleting user:", error);
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      username: newName,
+    },
+  });
 
-    if (error.code === "P2025")
-      throw new Error(`User with id '${id}' not found`);
+  // do I need to return updatedUser here?
+  return res.json(updatedUser);
+}
 
-    throw error;
-  }
+async function deleteUser(req, res) {
+  const { userId } = req.query; // FOR POSTMAN testing
+  // const userId = req.user.id; // From JWT middleware (later)
+
+  const deletedUser = await prisma.user.delete({ where: { id: userId } });
+
+  return res.json(deletedUser);
 }
 
 module.exports = {
   createUser,
   findUser,
-//   updateUsername,
+  getStorage,
+  updateUsername,
   deleteUser,
-
 };

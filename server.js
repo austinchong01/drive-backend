@@ -1,7 +1,9 @@
 require('dotenv').config();
+require('express-async-errors');
 const express = require('express');
 const path = require('path');
 const passport = require('passport');
+const prismaErrorHandler = require('./errors/prismaErrorHandler');
 
 const app = express();
 
@@ -31,7 +33,22 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use((err, req, res, next) => {
-  res.status(err.statusCode || 500).send(err.message);
+  err = prismaErrorHandler(err);
+
+  if (!err.statusCode || err.statusCode >= 500) {
+    console.log("Status 500 Error")
+    return res.status(500).json({
+      error: 'InternalServerError',
+      message: err.message                          // FOR DEVELOPMENT
+      // message: 'An unexpected error occurred'    // FOR DEPLOYMENT
+    });
+  }
+
+  console.error(err.name, err.statusCode, err.message);
+  res.status(err.statusCode).json({
+    error: err.name,
+    message: err.message
+  });
 });
 
 const PORT = process.env.PORT || 3000;

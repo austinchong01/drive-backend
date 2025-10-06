@@ -11,9 +11,9 @@ router.post("/auth/register", user.createUser);
 //   res.send('Protected Route!')
 // });
 
-// router.get("/profile", user.findUser);
-// router.get("/storage", user.storage);
-// router.patch("/profile", user.updateUsername);
-// router.delete("/profile", user.delete);
+router.get("/profile", user.findUser);
+router.get("/storage", user.getStorage);
+router.patch("/profile", user.updateUsername);
+router.delete("/profile", user.deleteUser);
 
 module.exports = router;
