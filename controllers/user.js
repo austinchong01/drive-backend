@@ -35,9 +35,8 @@ async function createUser(req, res) {
   });
 }
 
-async function getStorage(req, res) {
-  // const { userId } = req.query; // FOR POSTMAN testing
-  const userId = req.user.userId; // From JWT middleware
+async function getStorage(req, res, next) {
+  const userId = req.user.userId; // JWT
 
   const foundUser = await prisma.user.findUnique({
     where: { id: userId },
@@ -46,14 +45,13 @@ async function getStorage(req, res) {
     },
   });
 
-  if (!foundUser) throw new NotFoundError(`User with id '${userId}' not found`);
+  if (!foundUser) return next(new NotFoundError(`User with id '${userId}' not found`));
 
   return res.json(foundUser.storage);
 }
 
-async function getUser(req, res) {
-  const { userId } = req.query; // FOR POSTMAN testing
-  // const userId = req.user.id; // From JWT middleware (later)
+async function getUser(req, res, next) {
+  const userId = req.user.id; // JWT
 
   const foundUser = await prisma.user.findUnique({
     where: { id: userId },
@@ -62,15 +60,13 @@ async function getUser(req, res) {
     },
   });
 
-  if (!foundUser) throw new NotFoundError(`User with id '${userId}' not found`);
+  if (!foundUser) return next(new NotFoundError(`User with id '${userId}' not found`));
 
   return res.json(foundUser);
 }
 
 async function updateUsername(req, res) {
-  const { userId } = req.query; // FOR POSTMAN testing
-  // const userId = req.user.id; // From JWT middleware (later)
-
+  const userId = req.user.id; // JWT
   const { newName } = req.body;
 
   const updatedUser = await prisma.user.update({
@@ -83,27 +79,24 @@ async function updateUsername(req, res) {
     },
   });
 
-  // need return?
   return res.json(updatedUser);
 }
 
 async function deleteUser(req, res) {
-  const { userId } = req.query; // FOR POSTMAN testing
-  // const userId = req.user.id; // From JWT middleware (later)
+  const userId = req.user.id; // JWT
 
   const deletedUser = await prisma.user.delete({ where: { id: userId } });
 
-  // need return?
   return res.json(deletedUser);
 }
 
-async function login(req, res) {
+async function login(req, res, next) {
   const { email, password } = req.body;
 
   // Find user and verify password
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !(await bcrypt.compare(password, user.password)))
-    throw new UnauthorizedError("Invalid credentials");
+    return next(new UnauthorizedError("Invalid credentials"));
 
   // Create JWT token
   const token = jwt.sign(
@@ -115,7 +108,7 @@ async function login(req, res) {
   res.json({ token });
 }
 
-async function logout(req, res) {
+async function logout(req, res, next) {
   // With JWT, logout is handled client-side by removing the token
   // Server doesn't need to do anything since JWTs are stateless
 

@@ -46,36 +46,36 @@ API Endpoints
 
 - Files
   - POST /files
-    - INPUTS: file (multipart/form-data), folderId (null if root)
-    - Validates storage limit before upload
+    - upload file
+    - validates storage limit
 
-  - GET /files?folderId={id}
-    - Get all files in a folder (null if root)
-    - Include pagination for large folders
   - GET /files/{fileId}/download
-    - Download file (adds fl_attachment flag)
+    - download file (adds fl_attachment flag)
+  - GET /files/{filter}
+    - get all mimetype (filter) files
 
   - PATCH /files/{fileId}
-    - INPUTS: displayName, folderId (optional - for moving)
-    - Can rename AND/OR move file
+    - rename AND/OR move file
 
   - DELETE /files/{fileId}
-    - delete file and update storage
+    - delete file
+    - update storage
 
 - Folders
   - POST /folders
-    - INPUTS: name, parendId (null for root)
+    - create folder
 
   - GET /folders?parentId={id}
-    - Get all folders within parent (or root if null)
+    - get all folders within parent (or root if null)
   - GET /folders/{folderId}
-    - Get folder details + breadcrumb path
+    - get folder details + breadcrumb path
   - GET /folders/{folderId}/contents
-    - Get BOTH files AND folders
+    - get BOTH files AND folder in a folder (null if root)
+    - sort by folder, file, then uploaded/updated at
+    - include pagination for large folders?
     
   - PATCH /folders/{folderId}
-    - INPUTS: name, parentId (optional - for moving)
-    - Can rename AND/OR move folder
+    - rename AND/OR move folder
 
   - DELETE /folders/{folderId}
     - delete folder, all children, files, and update storage
@@ -87,7 +87,6 @@ API Endpoints
 Implementation
 - Custom Error Handling
   - Prisma specific errors
-  
 - Sanitation/Validation
 - JWT session handling
 - Unit Testing

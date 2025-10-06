@@ -34,9 +34,8 @@ const validateUser = [
 
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new BadRequestError(errors.errors[0].msg);
-    }
+    if (!errors.isEmpty())
+      return next(new BadRequestError(errors.errors[0].msg));
     next();
   },
 ];
@@ -55,9 +54,8 @@ const validateLogin = [
 
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new BadRequestError(errors.errors[0].msg);
-    }
+    if (!errors.isEmpty())
+      return next(new BadRequestError(errors.errors[0].msg));
     next();
   },
 ];
@@ -77,11 +75,32 @@ const validateNewUsername = [
 
   (req, res, next) => {
     const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return next(new BadRequestError(errors.errors[0].msg));
+    next();
+  },
+];
+
+const validateFileName = [
+  body("displayName")
+    .trim()
+    .notEmpty()
+    .withMessage("Filename is required")
+    .isLength({ min: 1, max: 20 })
+    .withMessage("Filename must be between 1 and 20 characters")
+    .matches(/^[a-zA-Z0-9_.-]+$/)
+    .withMessage(
+      "Filename can only contain letters, numbers, underscores, hyphens, and periods"
+    ),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      throw new BadRequestError(errors.errors[0].msg);
+      return next(new BadRequestError(errors.errors[0].msg));
     }
     next();
   },
 ];
 
-module.exports = { validateUser, validateLogin, validateNewUsername };
+
+module.exports = { validateUser, validateLogin, validateNewUsername, validateFileName };

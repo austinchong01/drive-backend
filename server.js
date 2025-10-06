@@ -20,7 +20,7 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-app.use('/', require('./routes/users'));
+app.use('/', require('./routes/userRouter'));
 // app.use('/files', require('./routes/files'));
 // app.use('/folders', require('./routes/folders'));
 

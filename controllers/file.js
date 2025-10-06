@@ -1,91 +1,114 @@
 const { PrismaClient } = require("@prisma/client");
+const jwt = require("jsonwebtoken");
+const upload = require("../middleware/multer");
+const cloudinary = require("../config/cloudinary");
 
 const prisma = new PrismaClient();
 
-async function createFile(file, folderId, result, userId, displayName) {
-  try {
-    const newFile = await prisma.file.create({
-      data: {
-        userId: userId,
-        folderId: folderId,
-        originalName: file.originalname,
-        displayName: displayName,
+async function createFile(req, res, next) {
+  // Validation
+  if (!req.file) return next(new BadRequestError("No file uploaded"));
 
-        cloudinaryUrl: result.secure_url,
-        cloudinaryPublicId: result.public_id,
-        cloudinaryResourceType: result.resource_type,
+  const userId = req.user.userId;
+  const { folderId } = req.params;
 
-        mimetype: file.mimetype,
-        size: file.size,
+  // multer
+  upload.single("image")(req, res, (err) => {
+    // multer error check
+    if (err) return next(new BadRequestError(err.message));
+
+    const base64File = `data:${
+      req.file.mimetype
+    };base64,${req.file.buffer.toString("base64")}`;
+
+    // upload to cloudinary
+    cloudinary.uploader.upload(
+      base64File,
+      {
+        folder: "drive",
+        resource_type: "auto",
       },
-    });
+      async (error, result) => {
+        if (error) return next(error);
 
-    console.log("Prisma stored file successfully:", newFile.displayName);
-    return newFile;
-  } catch (error) {
-    if (error.code === "P2002") {
-      const field = error.meta?.target?.[0];
-      throw new Error(`A file with this ${field} already exists`);
-    }
-    if (error.code === "P2003")
-      throw new Error("Invalid user or folder reference");
+        // upload to database
+        try {
+          const newFile = await prisma.file.create({
+            data: {
+              userId: userId,
+              folderId: folderId,
+              originalName: req.file.originalname,
+              displayName: req.body.displayName,
 
-    throw error;
-  }
+              cloudinaryUrl: result.secure_url,
+              cloudinaryPublicId: result.public_id,
+              cloudinaryResourceType: result.resource_type,
+
+              mimetype: req.file.mimetype,
+              size: req.file.size,
+            },
+          });
+
+          res.json({
+            success: true,
+            message: "File uploaded successfully",
+            displayName: newFile.displayName,
+          });
+        } catch (dbError) {
+          // Clean up Cloudinary upload since DB save failed
+          await cloudinary.uploader.destroy(result.public_id, {
+            resource_type: result.resource_type,
+          });
+
+          return next(dbError);
+        }
+      }
+    );
+  });
 }
 
+// async function download(req, res, next) {
+  
+// }
 
-// do errors bubble up naturally? need try/catch?
-async function getFile(id) {
-  const foundFile = await prisma.file.findUnique({ where: { id } });
+// async function filter(req, res, next) {
 
-  if (!foundFile) throw new Error(`File with id '${id}' not found`);
+// }
 
-  console.log("File found successfully:", foundFile.displayName);
-  return foundFile;
-}
+async function updateFile(req, res) {
+  const userId = req.user.id; // JWT
+  const { newFileName } = req.body;
 
-// get all files given user and folder
-// do errors bubble up naturally? need try/catch
-async function getAllFiles(userId, folderId) {
-  const files = await prisma.file.findMany({
-    where: {
-      userId: userId,
-      folderId: folderId,
-    }
+  const updatedFile = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      displayName: newFileName,
+    },
+    select: {
+      username: true,
+    },
   });
 
-  console.log(`Found ${files.length} file(s) for user ${userId} in folder ${folderId}`);
-  return files;
+  return res.json(updatedFile);
 }
 
-async function updateFileName(id, displayName) {
-  try {
-    const updatedFile = await prisma.file.update({
-      where: { id },
-      data: { displayName },
-    });
+async function deleteFile(req, res) {
+  const userId = req.user.id; // JWT
+  const { fileId } = req.params;
 
-    console.log("File name updated successfully:", updatedFile.displayName);
-    return updatedFile;
-  } catch (error) {
-    if (error.code === "P2025")
-      throw new Error(`File with id '${id}' not found`);
-    throw error;
-  }
+  const deletedFile = await prisma.file.delete({
+    where: { id: fileId, userId },
+  });
+
+  // Decrement user storage
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      storage: { decrement: deletedFile.size },
+    },
+  });
+
+  return res.json(deletedFile);
 }
 
-async function deleteFile(id) {
-  try {
-    const deletedFile = await prisma.file.delete({ where: { id } });
-
-    console.log("File deleted successfully:", deletedFile.displayName);
-    return deletedFile;
-  } catch (error) {
-    if (error.code === "P2025")
-      throw new Error(`File with id '${id}' not found`);
-    throw error;
-  }
-}
-
-module.exports = { createFile, getFile, updateFileName, deleteFile };
+module.exports = { createFile, updateFile, deleteFile };
