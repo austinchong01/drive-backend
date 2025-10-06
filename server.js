@@ -1,8 +1,9 @@
-require('dotenv').config();
-require('express-async-errors');
-const express = require('express');
-const path = require('path');
-const prismaErrorHandler = require('./errors/prismaErrorHandler');
+require("dotenv").config();
+require("express-async-errors");
+const express = require("express");
+const path = require("path");
+const prismaErrorHandler = require("./errors/prismaErrorHandler");
+const multerErrorHandler = require("./errors/multerErrorHandler")
 
 const app = express();
 
@@ -11,38 +12,41 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
     timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV 
+    env: process.env.NODE_ENV,
   });
 });
 
 // Routes
-app.use('/', require('./routes/userRouter'));
-// app.use('/files', require('./routes/files'));
+app.use("/", require("./routes/userRouter"));
+app.use("/files", require("./routes/fileRouter"));
 // app.use('/folders', require('./routes/folders'));
 
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
+
+// error middleware
 app.use((err, req, res, next) => {
+  err = multerErrorHandler(err);
   err = prismaErrorHandler(err);
 
   if (!err.statusCode || err.statusCode >= 500) {
-    console.log("Status 500 Error")
+    console.log("Status 500 Error");
     return res.status(500).json({
-      error: 'InternalServerError',
-      message: err.message                          // FOR DEVELOPMENT
+      error: "InternalServerError",
+      message: err.message, // FOR DEVELOPMENT
       // message: 'An unexpected error occurred'    // FOR DEPLOYMENT
     });
   }
 
-  console.error(err.name, err.statusCode, err.message);
+  console.log(err.name, err.statusCode, err.message);
   res.status(err.statusCode).json({
     error: err.name,
-    message: err.message
+    message: err.message,
   });
 });
 

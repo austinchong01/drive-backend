@@ -91,7 +91,8 @@ const validateFileName = [
     .matches(/^[a-zA-Z0-9_.-]+$/)
     .withMessage(
       "Filename can only contain letters, numbers, underscores, hyphens, and periods"
-    ),
+    )
+    .escape(),
 
   (req, res, next) => {
     const errors = validationResult(req);
