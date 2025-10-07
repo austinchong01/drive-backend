@@ -134,7 +134,7 @@ async function deleteFolder(req, res, next) {
   const folder = await prisma.folder.findFirst({
     where: {
       id: folderId,
-      userId: userId,
+      userId,
     },
   });
   if (!folder) 

@@ -22,7 +22,7 @@ async function createUser(req, res) {
   const token = jwt.sign(
     { userId: user.id, email: user.email },
     process.env.JWT_SECRET,
-    { expiresIn: '24h' }
+    { expiresIn: '48h' }
   );
 
   return res.status(201).json({
@@ -60,6 +60,21 @@ async function logout(req, res, next) {
   res.json({ message: "Logged out successfully" });
 }
 
+async function getUser(req, res, next) {
+  const userId = req.user.userId; // JWT
+
+  const foundUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      username: true,
+    },
+  });
+
+  if (!foundUser) return next(new NotFoundError(`Database Error: User with id '${userId}' not found`));
+
+  return res.json(foundUser.username);
+}
+
 async function getStorage(req, res, next) {
   const userId = req.user.userId; // JWT
 
@@ -75,23 +90,8 @@ async function getStorage(req, res, next) {
   return res.json(foundUser.storage);
 }
 
-async function getUser(req, res, next) {
-  const userId = req.user.id; // JWT
-
-  const foundUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      username: true,
-    },
-  });
-
-  if (!foundUser) return next(new NotFoundError(`Database Error: User with id '${userId}' not found`));
-
-  return res.json(foundUser);
-}
-
 async function updateUsername(req, res) {
-  const userId = req.user.id; // JWT
+  const userId = req.user.userId; // JWT
   const { newName } = req.body;
 
   const updatedUser = await prisma.user.update({
@@ -108,11 +108,11 @@ async function updateUsername(req, res) {
 }
 
 async function deleteUser(req, res) {
-  const userId = req.user.id; // JWT
+  const userId = req.user.userId; // JWT
 
-  const deletedUser = await prisma.user.delete({ where: { id: userId } });
+  await prisma.user.delete({ where: { id: userId } });
 
-  return res.json(deletedUser);
+  return res.sendStatus(204);
 }
 
 module.exports = {
