@@ -1,87 +1,76 @@
 const { PrismaClient } = require("@prisma/client");
+const jwt = require("jsonwebtoken");
+const { BadRequestError, NotFoundError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
 
-async function createFolder(name, userId) {
-  try {
-    const newFolder = await prisma.folder.create({
-      data: {
-        name,
-        userId,
-      },
-    });
+async function createFolder(req, res, next) {
+  const userId = req.user.userId;
+  const folderId = req.params.folderId;
+  const { name } = req.body;
 
-    console.log("Prisma stored folder successfully:", newFolder.name);
-    return newFolder;
-  } catch (error) {
-    if (error.code === "P2002") {
-      const field = error.meta?.target?.[0];
-      throw new Error(`A folder with this ${field} already exists`);
-    }
-    if (error.code === "P2003") throw new Error("Invalid user reference");
-
-    throw error;
-  }
-}
-
-async function getFolder(id) {
-  const foundFolder = await prisma.folder.findUnique({ where: { id } });
-
-  if (!foundFolder) throw new Error(`Folder with id '${id}' not found`);
-
-  console.log("Folder found successfully:", foundFolder.name);
-  return foundFolder;
-}
-
-// get all folders given user
-async function getAllFolders(userId) {
-  const folders = await prisma.folder.findMany({
-    where: {
-      userId: userId,
+  const folder = await prisma.user.create({
+    data: {
+      name,
+      userId,
+      parentId: folderId,
     },
   });
 
-  console.log(`Found ${folders.length} file(s) for user ${userId}`);
-  return folders;
+  return res.status(201).json({
+    message: "Folder created successfully",
+    folder,
+  });
 }
 
-async function updateFolderName(id, name) {
-  try {
-    const updatedFolder = await prisma.folder.update({
-      where: { id },
-      data: { name },
-    });
+async function updateFolder(req, res) {
+  const userId = req.user.userId; // JWT
+  const { folderId } = req.params;
+  const { displayName } = req.body;
 
-    console.log("Folder name updated successfully:", updatedFolder.name);
-    return updatedFolder;
-  } catch (error) {
-    if (error.code === "P2025")
-      throw new Error(`Folder with id '${id}' not found`);
-    throw error;
-  }
+  const updatedFolder = await prisma.folder.update({
+    where: { id: folderId, userId },
+    data: {
+      name: displayName,
+    },
+    select: {
+      name: true,
+    },
+  });
+
+  return res.json(updatedFolder);
 }
 
-async function deleteFolder(id) {
-  try {
-    const deletedFolder = await prisma.folder.delete({ where: { id } });
+async function deleteFolder(req, res, next) {
+  const userId = req.user.userId; // JWT
+  const { fileId } = req.params;
 
-    console.log("Folder deleted successfully:", deletedFolder.name);
-    return deletedFolder;
-  } catch (error) {
-    if (error.code === "P2025")
-      throw new Error(`Folder with id '${id}' not found`);
-    throw error;
-  }
+  const fileToDelete = await prisma.file.findUnique({
+    where: { id: fileId, userId },
+    select: {
+      cloudinaryPublicId: true,
+      cloudinaryResourceType: true,
+      size: true,
+    },
+  });
+
+  if (!fileToDelete) return next(new NotFoundError("File not found"));
+
+  // Remove from cloudinary. Does not delete from database if fails
+  await cloudinary.uploader.destroy(fileToDelete.cloudinaryPublicId, {
+    resource_type: fileToDelete.cloudinaryResourceType,
+  });
+
+  // Delete from database in transaction
+  await prisma.$transaction([
+    prisma.file.delete({ where: { id: fileId } }),
+    prisma.user.update({
+      where: { id: userId },
+      data: { storage: { decrement: fileToDelete.size } },
+    }),
+  ]);
+
+  return res.status(204).end();
 }
 
-// get all folder given userId
-async function getAllFoldersFromUser(userId) {
-  const foundFolders = await prisma.folder.findMany({ where: { userId } });
-
-  if (!foundFolders) throw new Error(`Folder with id '${id}' not found`);
-
-  console.log("Folders found successfully:");
-  return foundFolders;
-}
-
-module.exports = { createFolder, getFolder, updateFolderName, deleteFolder };
+module.exports = { createFolder, updateFolder, deleteFolder };

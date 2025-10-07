@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const file = require("../controllers/file");
-const validation = require("../middleware/validation");
+const val = require("../middleware/validation");
 const upload = require("../middleware/multer");
 const authenticateToken = require("../config/jwt");
 
-router.post("/:folderId?/upload", authenticateToken, upload.single("image"), validation.validateFileName, file.createFile);
+router.post("/:folderId?/upload", authenticateToken, upload.single("image"), val.validateFileName, file.createFile);
 
 router.get("/:fileId/download", authenticateToken, file.download);
 
-router.patch("/:fileId", authenticateToken, validation.validateFileName, file.updateFile);
+router.patch("/:fileId", authenticateToken, val.validateFileName, file.updateFile);
 
 router.delete("/:fileId", authenticateToken, file.deleteFile);
 

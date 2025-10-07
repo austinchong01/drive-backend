@@ -103,5 +103,27 @@ const validateFileName = [
   },
 ];
 
+const validateFolderName = [
+  body("displayName")
+    .trim()
+    .notEmpty()
+    .withMessage("Folder name is required")
+    .isLength({ min: 1, max: 20 })
+    .withMessage("Folder name must be between 1 and 20 characters")
+    .matches(/^[a-zA-Z0-9_.-]+$/)
+    .withMessage(
+      "Folder name can only contain letters, numbers, underscores, hyphens, and periods"
+    )
+    .escape(),
 
-module.exports = { validateUser, validateLogin, validateNewUsername, validateFileName };
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(new BadRequestError(errors.errors[0].msg));
+    }
+    next();
+  },
+];
+
+
+module.exports = { validateUser, validateLogin, validateNewUsername, validateFileName, validateFolderName };
