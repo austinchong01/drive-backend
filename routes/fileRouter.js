@@ -7,8 +7,7 @@ const authenticateToken = require("../config/jwt");
 
 router.post("/:folderId?/upload", authenticateToken, upload.single("image"), validation.validateFileName, file.createFile);
 
-// router.get("/:fileId/download", authenticateToken, file.download);
-// router.get("/:filter", authenticateToken, file.filter);
+router.get("/:fileId/download", authenticateToken, file.download);
 
 router.patch("/:fileId", authenticateToken, validation.validateFileName, file.updateFile);
 

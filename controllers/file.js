@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const jwt = require("jsonwebtoken");
 const cloudinary = require("../config/cloudinary");
-const { BadRequestError } = require("../errors/CustomError");
+const { BadRequestError, NotFoundError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
 
@@ -10,7 +10,7 @@ async function createFile(req, res, next) {
   if (!req.file) return next(new BadRequestError("No file uploaded"));
 
   const userId = req.user.userId;
-  const folderId = req.params.folderId === "null" ? null : req.params.folderId;
+  const folderId = req.params.folderId === "null" ? null : req.params.folderId; // not sure if I need this
 
   const base64File = `data:${
     req.file.mimetype
@@ -69,32 +69,50 @@ async function createFile(req, res, next) {
   );
 }
 
-// async function download(req, res, next) {
+async function download(req, res, next) {
+  const userId = req.user.userId; // JWT
+  const { fileId } = req.params;
 
-// }
+  const file = await prisma.file.findUnique({
+    where: { id: fileId, userId },
+    select: { cloudinaryUrl: true, displayName: true },
+  });
 
-// async function filter(req, res, next) {
+  if (!file)
+    return next(
+      new NotFoundError(
+        `Database Error: File with id '${fileId}' not found in User's files`
+      )
+    );
 
-// }
+  const downloadUrl = file.cloudinaryUrl.replace(
+    "/upload/",
+    `/upload/fl_attachment:${encodeURIComponent(file.displayName)}/`
+  );
+
+  res.json(downloadUrl);
+  // res.redirect(downloadUrl); // for DEPLOY
+}
 
 async function updateFile(req, res) {
   const userId = req.user.userId; // JWT
-  const { newFileName } = req.body;
+  const { fileId } = req.params;
+  const { displayName } = req.body;
 
-  const updatedFile = await prisma.user.update({
-    where: { id: userId },
+  const updatedFile = await prisma.file.update({
+    where: { id: fileId, userId },
     data: {
-      displayName: newFileName,
+      displayName: displayName,
     },
     select: {
-      username: true,
+      displayName: true,
     },
   });
 
   return res.json(updatedFile);
 }
 
-async function deleteFile(req, res) {
+async function deleteFile(req, res, next) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
 
@@ -102,7 +120,7 @@ async function deleteFile(req, res) {
     const deletedFile = await prisma.file.delete({
       where: { id: fileId, userId },
     });
-    
+
     // Decrement user storage
     await prisma.user.update({
       where: { id: userId },
@@ -122,4 +140,4 @@ async function deleteFile(req, res) {
   }
 }
 
-module.exports = { createFile, updateFile, deleteFile };
+module.exports = { createFile, download, updateFile, deleteFile };
