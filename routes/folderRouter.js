@@ -7,10 +7,10 @@ const authenticateToken = require("../config/jwt");
 router.post("/:folderId?/upload", authenticateToken, upload.single("image"), val.validateFolderName, folder.createFolder);
 
 router.get("/:folderId", authenticateToken, folder.getContents);
-// router.get("/", authenticateToken, ); // get breadcrumb path?
+router.get("/:folderId/crumbs", authenticateToken, folder.getBreadCrumbs);
 
-router.patch("/:folderId", authenticateToken, validation.validateFileName, folder.updateFolder);
-// router.patch("/:folderId", authenticateToken, folder.updateFolderLocation); // folder parentId
+router.patch("/:folderId", authenticateToken, val.validateFileName, folder.updateFolder);
+router.patch("/:folderId/location", authenticateToken, folder.updateFolderLoc); 
 
 router.delete("/:folderId", authenticateToken, folder.deleteFolder);
 
