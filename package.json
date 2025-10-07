@@ -10,7 +10,8 @@
     "migrate": "npx prisma migrate deploy",
     "migrate:dev": "npx prisma migrate dev",
     "generate": "npx prisma generate",
-    "studio": "npx prisma studio"
+    "studio": "npx prisma studio",
+    "test": "jest"
   },
   "dependencies": {
     "@prisma/client": "^5.6.0",
@@ -25,8 +26,10 @@
     "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
+    "jest": "^30.2.0",
     "nodemon": "^3.0.1",
-    "prisma": "^5.6.0"
+    "prisma": "^5.6.0",
+    "supertest": "^7.1.4"
   },
   "engines": {
     "node": ">=18.0.0"
