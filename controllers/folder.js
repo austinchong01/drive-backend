@@ -23,6 +23,11 @@ async function createFolder(req, res, next) {
   });
 }
 
+// async function getContents(req, res) {
+//   const userId = req.user.userId;
+//   const folderId = req.params.folderId;
+// }
+
 async function updateFolder(req, res) {
   const userId = req.user.userId; // JWT
   const { folderId } = req.params;
@@ -43,34 +48,12 @@ async function updateFolder(req, res) {
 
 async function deleteFolder(req, res, next) {
   const userId = req.user.userId; // JWT
-  const { fileId } = req.params;
+  const { folderId } = req.params;
 
-  const fileToDelete = await prisma.file.findUnique({
-    where: { id: fileId, userId },
-    select: {
-      cloudinaryPublicId: true,
-      cloudinaryResourceType: true,
-      size: true,
-    },
-  });
-
-  if (!fileToDelete) return next(new NotFoundError("File not found"));
-
-  // Remove from cloudinary. Does not delete from database if fails
-  await cloudinary.uploader.destroy(fileToDelete.cloudinaryPublicId, {
-    resource_type: fileToDelete.cloudinaryResourceType,
-  });
-
-  // Delete from database in transaction
-  await prisma.$transaction([
-    prisma.file.delete({ where: { id: fileId } }),
-    prisma.user.update({
-      where: { id: userId },
-      data: { storage: { decrement: fileToDelete.size } },
-    }),
-  ]);
+  await prisma.folder.delete({where: {id: folderId}});
+  // how to update storage from deleted files in folder
 
   return res.status(204).end();
 }
 
-module.exports = { createFolder, updateFolder, deleteFolder };
+module.exports = { createFolder, getContents, updateFolder, deleteFolder };

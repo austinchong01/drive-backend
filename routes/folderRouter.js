@@ -6,8 +6,12 @@ const authenticateToken = require("../config/jwt");
 
 router.post("/:folderId?/upload", authenticateToken, upload.single("image"), val.validateFolderName, folder.createFolder);
 
-// router.patch("/:fileId", authenticateToken, validation.validateFileName, folder.updateFolder);
+router.get("/:folderId", authenticateToken, folder.getContents);
+// router.get("/", authenticateToken, ); // get breadcrumb path?
 
-// router.delete("/:fileId", authenticateToken, folder.deleteFolder);
+router.patch("/:folderId", authenticateToken, validation.validateFileName, folder.updateFolder);
+// router.patch("/:folderId", authenticateToken, folder.updateFolderLocation); // folder parentId
+
+router.delete("/:folderId", authenticateToken, folder.deleteFolder);
 
 module.exports = router;

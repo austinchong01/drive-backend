@@ -66,13 +66,11 @@ API Endpoints
     - create folder
 
   - GET /folders?parentId={id}
-    - get all folders within parent (or root if null)
-  - GET /folders/{folderId}
-    - get folder details + breadcrumb path
-  - GET /folders/{folderId}/contents
     - get BOTH files AND folder in a folder (null if root)
     - sort by folder, file, then uploaded/updated at
     - include pagination for large folders?
+  - GET /folders/{folderId}
+    - get folder details + breadcrumb path
     
   - PATCH /folders/{folderId}
     - rename AND/OR move folder
