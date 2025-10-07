@@ -129,7 +129,12 @@ async function deleteFolder(req, res, next) {
   const userId = req.user.userId; // JWT
   const { folderId } = req.params;
 
-  await prisma.folder.delete({ where: { id: folderId } });
+  await prisma.folder.deleteMany({ 
+    where: { 
+      id: folderId,
+      userId: userId 
+    } 
+  });
   // how to update storage from deleted files in folder
 
   return res.status(204).end();
