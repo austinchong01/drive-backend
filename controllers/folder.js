@@ -129,13 +129,60 @@ async function deleteFolder(req, res, next) {
   const userId = req.user.userId; // JWT
   const { folderId } = req.params;
 
-  await prisma.folder.deleteMany({ 
-    where: { 
+  // security check
+  // prevent using userId in next queries
+  const folder = await prisma.folder.findFirst({
+    where: {
       id: folderId,
-      userId: userId 
-    } 
+      userId: userId,
+    },
   });
-  // how to update storage from deleted files in folder
+  if (!folder) 
+    return next(new NotFoundError('Folder not found or access denied'));
+
+
+  // get all folderIds within folderId
+  const foldersToCheck = [folderId];
+  const allFolderIds = [];
+
+  while (foldersToCheck.length !== 0) {
+    const currFolder = foldersToCheck.pop();
+    allFolderIds.push(currFolder);
+
+    const subfolders = await prisma.folder.findMany({
+      where: {
+        parentId: currFolder,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    foldersToCheck.push(...subfolders.map((sf) => sf.id));
+  }
+
+  // Single aggregate for ALL files
+  const totalStorage = await prisma.file.aggregate({
+    where: {
+      folderId: { in: allFolderIds },
+    },
+    _sum: { size: true },
+  });
+
+  const storageToFree = totalStorage._sum.size || 0;
+
+  // delete all files and folders in folderId
+  await prisma.folder.delete({
+    where: {
+      id: folderId,
+    },
+  });
+
+  // update User storage
+  await prisma.user.update({
+    where: { id: userId },
+    data: { storage: { decrement: storageToFree } },
+  });
 
   return res.status(204).end();
 }
