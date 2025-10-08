@@ -9,7 +9,7 @@ async function createFolder(req, res, next) {
   const folderId = req.params.folderId;
   const { name } = req.body;
 
-  const folder = await prisma.user.create({
+  const folder = await prisma.folder.create({
     data: {
       name,
       userId,

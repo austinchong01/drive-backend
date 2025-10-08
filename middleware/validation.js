@@ -104,7 +104,7 @@ const validateFileName = [
 ];
 
 const validateFolderName = [
-  body("displayName")
+  body("name")
     .trim()
     .notEmpty()
     .withMessage("Folder name is required")

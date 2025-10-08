@@ -10,7 +10,7 @@ router.post("/:folderId?/upload", authenticateToken, upload.single("image"), val
 router.get("/:fileId/download", authenticateToken, file.download);
 
 router.patch("/:fileId/updateFileName", authenticateToken, val.validateFileName, file.updateFilename);
-router.patch("/:fileId/updateFileLocation", authenticateToken, file.updateFileLoc); // need to make tests
+router.patch("/:fileId/updateFileLocation", authenticateToken, file.updateFileLoc);
 
 router.delete("/:fileId", authenticateToken, file.deleteFile);
 

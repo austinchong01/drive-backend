@@ -43,6 +43,9 @@ Files
     - file exists in DB
     - storage is updated
     - return 201
+    - upload to null folder
+    - upload with folderId
+      - check with folder query
   - no file uploaded
     - BadRequestError
   - invalid userId
@@ -53,46 +56,27 @@ Files
     - BadRequestError
   - cloudinary error
     - not in database
-  - database error
-    - clean up cloudinary
 - GET Download
-  - valid fields
-    - downloadURL provided
-  - invalid userId
-    - NotFoundError
-  - invalid fileId
-    - NotFoundError
 - PATCH Filename
   - valid fields
-  - invalid userId
-    - NotFoundError
-  - invalid fileId
-    - NotFoundError
+    - validate new filename
 - PATCH File Location
   - valid fields
     - validate new location from newFolderId
-  - invalid userId
-    - NotFoundError
-  - invalid fileId
-    - NotFoundError
   - invalid folderId
     - NotFoundError
 - Delete
   - valid fields
     - all files/folders deleted in DB and Cloudinary
     - return 204
-  - invalid userId
-    - NotFoundError
-  - invalid fileId
-    - NotFoundError
   - Cloudinary error
     - not in DB
-  - Db error
-    - not in cloudinary
 
 Folders
 
-- POST Upload
+- POST Create Folder
+  - create folder w/o parent folder
+  - create folder w/ parent
 - GET Contents
 - GET Breadcrumbs
 - PATCH Update Folder Name

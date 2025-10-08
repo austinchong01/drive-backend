@@ -1,7 +1,6 @@
 require("express-async-errors");
 const express = require("express");
 const request = require("supertest");
-const userRouter = require("../routes/userRouter");
 const jwt = require("jsonwebtoken");
 const prismaErrorHandler = require("../errors/prismaErrorHandler");
 const multerErrorHandler = require("../errors/multerErrorHandler");
@@ -9,7 +8,7 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.use("/", userRouter);
+app.use("/", require("../routes/userRouter"));
 
 app.use((err, req, res, next) => {
   err = multerErrorHandler(err);
