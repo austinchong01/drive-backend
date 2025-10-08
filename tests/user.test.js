@@ -5,15 +5,12 @@ const userRouter = require("../routes/userRouter");
 const jwt = require("jsonwebtoken");
 const prismaErrorHandler = require("../errors/prismaErrorHandler");
 const multerErrorHandler = require("../errors/multerErrorHandler");
-
 const app = express();
-
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use("/", userRouter);
 
-// error middleware
 app.use((err, req, res, next) => {
   err = multerErrorHandler(err);
   err = prismaErrorHandler(err);
@@ -32,7 +29,8 @@ app.use((err, req, res, next) => {
 });
 
 describe("User Register/Delete", () => {
-  test("register and delete", async () => {
+  let token;
+  test("Register", async () => {
     const response = await request(app).post("/auth/register").send({
       username: "test",
       email: "test@test.com",
@@ -42,24 +40,24 @@ describe("User Register/Delete", () => {
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty("token");
 
-    const token = response.body.token;
-    const deleteResponse = await request(app)
+    token = response.body.token;
+  });
+
+  test("Email in use", async () => {
+    const response = await request(app).post("/auth/register").send({
+      username: "test",
+      email: "test@test.com",
+      password: "password123",
+    });
+    expect(response.statusCode).toBe(409);
+  });
+
+  test("Delete", async () => {
+    const response = await request(app)
       .delete("/profile/")
       .set("Authorization", `Bearer ${token}`);
 
-    expect(deleteResponse.statusCode).toBe(204);
-  });
-
-  test("email in use", async () => {
-    const response = await request(app).post("/auth/register").send({
-      username: "test",
-      email: "test@example.com",
-      password: "password123",
-    });
-
-    expect(response.statusCode).toBe(409);
-
-    const jwt = require("jsonwebtoken");
+    expect(response.statusCode).toBe(204);
   });
 });
 
@@ -82,7 +80,8 @@ describe("User Tests w/ JWT", () => {
       .delete("/profile/")
       .set("Authorization", `Bearer ${authToken}`);
   });
-  test("valid login returns token", async () => {
+
+  test("Login", async () => {
     const response = await request(app).post("/auth/login").send({
       email: "logintest@example.com",
       password: "pass123",
@@ -92,7 +91,7 @@ describe("User Tests w/ JWT", () => {
     expect(response.body).toHaveProperty("token");
   });
 
-  test("valid token returns username", async () => {
+  test("Update username", async () => {
     const response = await request(app)
       .get("/profile")
       .set("Authorization", `Bearer ${authToken}`);
@@ -101,7 +100,7 @@ describe("User Tests w/ JWT", () => {
     expect(response.body).toBe("loginTestUser");
   });
 
-  test("valid token returns storage", async () => {
+  test("Get storage", async () => {
     const response = await request(app)
       .get("/storage")
       .set("Authorization", `Bearer ${authToken}`);

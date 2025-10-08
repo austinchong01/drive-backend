@@ -57,4 +57,4 @@ Other
 
 
 misc notes
-- account for server failures?
+- server failures?
