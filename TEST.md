@@ -1,60 +1,87 @@
 Testing Notes
 
 Users
+
 - Register
-    - valid fields
-        - return 201
-    - email already in use
-        - ConflictError (409)
+  - valid fields
+    - return 201
+  - email already in use
+    - ConflictError (409)
 - Login
-    - valid fields
-        - return token
-    - invalid password with email
-        - UnauthorizedError ("Invalid credentials")
-    - invalid email with password
-        - UnauthorizedError ("Invalid credentials")
+  - valid fields
+    - return token
+  - invalid password with email
+    - UnauthorizedError ("Invalid credentials")
+  - invalid email with password
+    - UnauthorizedError ("Invalid credentials")
 - Logout
 - Get usernme
-    - valid fields
-        - return (founderUser.username)
-    - invalid userId
-        - NotFoundError()
+  - valid fields
+    - return (founderUser.username)
+  - invalid userId
+    - NotFoundError()
 - Get storage
-    - valid fields
-        - return (foundUser.storage)
-    - invalid userId
-        - NotFoundError()
+  - valid fields
+    - return (foundUser.storage)
+  - invalid userId
+    - NotFoundError()
 - Update username
-    - valid fields
-        - return (updatedUser)
-    - invalid userId
-        - NotFoundError()
+  - valid fields
+    - return (updatedUser)
+  - invalid userId
+    - NotFoundError()
 - Delete user
-    - valid fields
-        - return 204
-    - invalid userId
-        - NotFoundError()
+  - valid fields
+    - return 204
+  - invalid userId
+    - NotFoundError()
 
 Files
+
+- Upload
+  - valid file
+  - no file uploaded
+  - invalid userId
+  - invalid folderId
+  - storage is updated
+  - file exists in DB
+  - if storage exceeds 10MB, call error
+- Download
+  - valid file
+    - downloadURL provided
+  - invalid userId
+  - invalid fileId
+    - NotFoundError
+- Update
+  - valid file
+  - invalid userId
+  - invalid fileId
+- Delete
+  - valid file
+  - invalid userId
+  - invalid fileId
+    - NotFoundError
+  - all files/folders deleted
 
 Folders
 
 Other
-- Validation mw
-    - validateUser
-        - username, email, password
-    - validateLogin
-        - email, password
-    - validateNewUsername
-        - newName
-    - validateFileName
-    - validateFolderName
-- Authenticate JWT mw
-    - no token
-        - UnauthorizedError
-    - invalid or expired token
-        - ForbiddenError
 
+- Validation mw
+  - validateUser
+    - username, email, password
+  - validateLogin
+    - email, password
+  - validateNewUsername
+    - newName
+  - validateFileName
+  - validateFolderName
+- Authenticate JWT mw
+  - no token
+    - UnauthorizedError
+  - invalid or expired token
+    - ForbiddenError
 
 misc notes
+
 - server failures?
