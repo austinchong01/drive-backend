@@ -10,6 +10,15 @@ async function createFile(req, res, next) {
 
   const userId = req.user.userId;
   const folderId = req.params.folderId;
+  const maxBytes = 10000000; // 10MB
+
+  const checkStorage = await prisma.user.findFirst({
+    // also validates userId
+    where: { id: userId },
+    select: { storage: true },
+  });
+  if (checkStorage.storage + req.file.size >= maxBytes)
+    next(new BadRequestError("Not enough storage"));
 
   const base64File = `data:${
     req.file.mimetype
@@ -81,7 +90,7 @@ async function download(req, res, next) {
   // res.redirect(downloadUrl); // for DEPLOY
 }
 
-async function updateFile(req, res) {
+async function updateFilename(req, res) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
   const { displayName } = req.body;
@@ -92,6 +101,25 @@ async function updateFile(req, res) {
       displayName: displayName,
     },
     select: {
+      displayName: true,
+    },
+  });
+
+  return res.json(updatedFile);
+}
+
+async function updateFileLoc(req, res) {
+  const userId = req.user.userId; // JWT
+  const { fileId } = req.params;
+  const { newFolderId } = req.body;
+
+  const updatedFile = await prisma.file.update({
+    where: { id: fileId, userId },
+    data: {
+      folderId: newFolderId,
+    },
+    select: {
+      folderId: true,
       displayName: true,
     },
   });
@@ -131,4 +159,10 @@ async function deleteFile(req, res, next) {
   return res.status(204).end();
 }
 
-module.exports = { createFile, download, updateFile, deleteFile };
+module.exports = {
+  createFile,
+  download,
+  updateFilename,
+  updateFileLoc,
+  deleteFile,
+};

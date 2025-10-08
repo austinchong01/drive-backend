@@ -93,11 +93,14 @@ describe("User Tests w/ JWT", () => {
 
   test("Update username", async () => {
     const response = await request(app)
-      .get("/profile")
-      .set("Authorization", `Bearer ${authToken}`);
+      .patch("/profile")
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newName: "updatedTestUser",
+      });
 
     expect(response.statusCode).toBe(200);
-    expect(response.body).toBe("loginTestUser");
+    expect(response.body).toBe("updatedTestUser");
   });
 
   test("Get storage", async () => {
@@ -133,14 +136,14 @@ describe("User Tests w/o JWT", () => {
     expect(response.body.message).toBe("Invalid credentials");
   });
 
-  test("invalid getUser", async () => {
-    // mock token
-    const fakeToken = jwt.sign(
-      { userId: "fake_user", email: "fake@test.com" },
-      process.env.JWT_SECRET,
-      { expiresIn: "60s" }
-    );
+  // mock token
+  const fakeToken = jwt.sign(
+    { userId: "fake_user", email: "fake@test.com" },
+    process.env.JWT_SECRET,
+    { expiresIn: "60s" }
+  );
 
+  test("invalid getUser", async () => {
     const response = await request(app)
       .get("/profile")
       .set("Authorization", `Bearer ${fakeToken}`);
@@ -151,13 +154,6 @@ describe("User Tests w/o JWT", () => {
   });
 
   test("invalid getStorage", async () => {
-    // mock token
-    const fakeToken = jwt.sign(
-      { userId: "fake_user", email: "fake@test.com" },
-      process.env.JWT_SECRET,
-      { expiresIn: "60s" }
-    );
-
     const response = await request(app)
       .get("/storage")
       .set("Authorization", `Bearer ${fakeToken}`);
@@ -167,13 +163,6 @@ describe("User Tests w/o JWT", () => {
   });
 
   test("invalid delete", async () => {
-    // fake token
-    const fakeToken = jwt.sign(
-      { userId: "fake_user", email: "fake@test.com" },
-      process.env.JWT_SECRET,
-      { expiresIn: "60s" }
-    );
-
     const deleteResponse = await request(app)
       .delete("/profile/")
       .set("Authorization", `Bearer ${fakeToken}`);

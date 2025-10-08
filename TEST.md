@@ -2,12 +2,12 @@ Testing Notes
 
 Users
 
-- Register
+- POST Register
   - valid fields
     - return 201
   - email already in use
-    - ConflictError (409)
-- Login
+    - ConflictError
+- POST Login
   - valid fields
     - return token
   - invalid password with email
@@ -15,55 +15,89 @@ Users
   - invalid email with password
     - UnauthorizedError ("Invalid credentials")
 - Logout
-- Get usernme
+- GET Usernme
   - valid fields
-    - return (founderUser.username)
+    - return username
   - invalid userId
-    - NotFoundError()
-- Get storage
+    - NotFoundError
+- GET Storage
   - valid fields
-    - return (foundUser.storage)
+    - return storage
   - invalid userId
-    - NotFoundError()
-- Update username
+    - NotFoundError
+- PATCH username
   - valid fields
-    - return (updatedUser)
+    - return update username
   - invalid userId
-    - NotFoundError()
-- Delete user
+    - NotFoundError
+- DELETE user
   - valid fields
     - return 204
   - invalid userId
-    - NotFoundError()
+    - NotFoundError
 
 Files
 
-- Upload
-  - valid file
+- POST Upload
+  - valid fields
+    - file exists in DB
+    - storage is updated
+    - return 201
   - no file uploaded
+    - BadRequestError
   - invalid userId
+    - NotFoundError
   - invalid folderId
-  - storage is updated
-  - file exists in DB
-  - if storage exceeds 10MB, call error
-- Download
-  - valid file
+    - BadRequestError
+  - storage exceeded
+    - BadRequestError
+  - cloudinary error
+    - not in database
+  - database error
+    - clean up cloudinary
+- GET Download
+  - valid fields
     - downloadURL provided
   - invalid userId
+    - NotFoundError
   - invalid fileId
     - NotFoundError
-- Update
-  - valid file
+- PATCH Filename
+  - valid fields
   - invalid userId
+    - NotFoundError
   - invalid fileId
+    - NotFoundError
+- PATCH File Location
+  - valid fields
+    - validate new location from newFolderId
+  - invalid userId
+    - NotFoundError
+  - invalid fileId
+    - NotFoundError
+  - invalid folderId
+    - NotFoundError
 - Delete
-  - valid file
+  - valid fields
+    - all files/folders deleted in DB and Cloudinary
+    - return 204
   - invalid userId
+    - NotFoundError
   - invalid fileId
     - NotFoundError
-  - all files/folders deleted
+  - Cloudinary error
+    - not in DB
+  - Db error
+    - not in cloudinary
 
 Folders
+
+- POST Upload
+- GET Contents
+- GET Breadcrumbs
+- PATCH Update Folder Name
+- PATCH Update Folder Location
+- DELETE Folder
 
 Other
 
@@ -73,7 +107,6 @@ Other
   - validateLogin
     - email, password
   - validateNewUsername
-    - newName
   - validateFileName
   - validateFolderName
 - Authenticate JWT mw

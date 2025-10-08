@@ -104,7 +104,7 @@ async function updateUsername(req, res) {
     },
   });
 
-  return res.json(updatedUser);
+  return res.json(updatedUser.username);
 }
 
 async function deleteUser(req, res) {
