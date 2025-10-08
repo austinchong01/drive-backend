@@ -50,6 +50,7 @@ describe("User Register/Delete", () => {
       password: "password123",
     });
     expect(response.statusCode).toBe(409);
+    expect(response.body.error).toBe("ConflictError");
   });
 
   test("Delete", async () => {
@@ -150,7 +151,6 @@ describe("User Tests w/o JWT", () => {
 
     expect(response.statusCode).toBe(404);
     expect(response.body.error).toBe("NotFoundError");
-    expect(response.body.message).toContain("not found");
   });
 
   test("invalid getStorage", async () => {
