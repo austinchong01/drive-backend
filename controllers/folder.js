@@ -29,25 +29,26 @@ async function getContents(req, res) {
   let folderId = req.params.folderId;
   if (folderId == null) folderId = "root";
 
-  const subfolders = await prisma.folder.findMany({
-    where: {
-      parentId: folderId,
-      userId: userId,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
-
-  const files = await prisma.file.findMany({
-    where: {
-      folderId: folderId,
-      userId: userId,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
+  const [subfolders, files] = await prisma.$transaction([
+    prisma.folder.findMany({
+      where: {
+        parentId: folderId,
+        userId: userId,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    }),
+    prisma.file.findMany({
+      where: {
+        folderId: folderId,
+        userId: userId,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    }),
+  ]);
 
   res.json({
     subfolders,
@@ -102,7 +103,7 @@ async function updateFolder(req, res) {
       name,
     },
   });
-  
+
   return res.json(updatedFolder);
 }
 
@@ -162,27 +163,28 @@ async function deleteFolder(req, res, next) {
     foldersToCheck.push(...subfolders.map((sf) => sf.id));
   }
 
-  // Single aggregate for ALL files
-  const totalStorage = await prisma.file.aggregate({
-    where: {
-      folderId: { in: allFolderIds },
-    },
-    _sum: { size: true },
-  });
+  await prisma.$transaction(async (p) => {
+    // Single aggregate for ALL files
+    const totalStorage = await p.file.aggregate({
+      where: {
+        folderId: { in: allFolderIds },
+      },
+      _sum: { size: true },
+    });
+    const storageToFree = totalStorage._sum.size || 0;
 
-  const storageToFree = totalStorage._sum.size || 0;
+    // delete all files and folders in folderId
+    await p.folder.delete({
+      where: {
+        id: folderId,
+      },
+    });
 
-  // delete all files and folders in folderId
-  await prisma.folder.delete({
-    where: {
-      id: folderId,
-    },
-  });
-
-  // update User storage
-  await prisma.user.update({
-    where: { id: userId },
-    data: { storage: { decrement: storageToFree } },
+    // update User storage
+    await p.user.update({
+      where: { id: userId },
+      data: { storage: { decrement: storageToFree } },
+    });
   });
 
   return res.status(204).end();

@@ -10,22 +10,27 @@ async function createUser(req, res) {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.create({
-    data: {
-      username,
-      email,
-      password: hashedPassword,
-    },
-  });
+  const user = await prisma.$transaction(async (p) => {
+    // Create user
+    const newUser = await p.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+      },
+    });
 
-  // create root folder
-  await prisma.folder.create({
-    data: {
-      id: "root",
-      name: "rootFolder",
-      userId: user.id,
-      parentId: null,
-    },
+    // Create root folder
+    await p.folder.create({
+      data: {
+        id: "root",
+        name: "rootFolder",
+        userId: newUser.id,
+        parentId: null,
+      },
+    });
+
+    return newUser;
   });
 
   // Create JWT token immediately after registration

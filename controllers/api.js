@@ -5,31 +5,32 @@ async function search(req, res) {
   const userId = req.user.userId;
   const { q } = req.query;
 
-  const folders = await prisma.folder.findMany({
-    where: {
-      name: {
-        contains: q,
-        mode: 'insensitive',  // Case-insensitive search
+  const [folders, files] = await prisma.$transaction([
+    prisma.folder.findMany({
+      where: {
+        name: {
+          contains: q,
+          mode: "insensitive",
+        },
+        userId,
       },
-      userId,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
-
-  const files = await prisma.file.findMany({
-    where: {
-      displayName: {
-        contains: q,
-        mode: 'insensitive',
+      orderBy: {
+        updatedAt: "desc",
       },
-      userId,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
+    }),
+    prisma.file.findMany({
+      where: {
+        displayName: {
+          contains: q,
+          mode: "insensitive",
+        },
+        userId,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    }),
+  ]);
 
   res.json({
     folders,

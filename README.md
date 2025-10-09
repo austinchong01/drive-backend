@@ -11,17 +11,19 @@ Core Functionalities
     - JWT session management
   - 10MB of storage (MAX)
 - File
-  - create/rename/delete
+  - create/rename/move/delete
   - unique name within folder
   - preview and download
 - Folder
-  - create/rename/delete
+  - create/rename/move/delete
   - unique name within folder
   - store files and folders
-  - home is root folder (folderId = null)
+  - breadcrumb path
+  - home is root folder (folderId = "root")
+    - create on user register
 - Other
   - file/folder search
-    - show limited results
+
 
 API Endpoints
 
@@ -32,6 +34,7 @@ API Endpoints
     - login
   - POST /auth/logout
     - logout
+    - delete JWT
 
   - GET /profile
     - get all profile information
@@ -51,11 +54,11 @@ API Endpoints
 
   - GET /files/{fileId}/download
     - download file (adds fl_attachment flag)
-  - GET /files/{filter}
-    - get all mimetype (filter) files
 
-  - PATCH /files/{fileId}
-    - rename AND/OR move file
+  - PATCH /files/{fileId}/updateFileName
+    - rename file
+  - PATCH /files/{fileId}/updateFileLocation
+    - move file to query newFolderId
 
   - DELETE /files/{fileId}
     - delete file
@@ -75,14 +78,14 @@ API Endpoints
   - PATCH /folders/{folderId}/newFolderName
     - rename folder
   - PATCH /folders/{folderId}/newFolderLocation
-    - move folder to new parentId
+    - move folder to query parentId
 
   - DELETE /folders/{folderId}
-    - delete folder, all children, files, and update storage
+    - delete folder, all children folders and files, and update storage
 
 - API
   - GET /search?q={name}
-    - Search folders and files by name
+    - Search folders and files query name
 
 Implementation
 - Custom Error Handling
@@ -92,16 +95,17 @@ Implementation
 - Rate Limiting
 - Performance Optimization
   - limiting query results
+  - transactions
 - pagination?
 - Testing
-  - Integrated
 - When moving, need to check unique folder/files names
+  - throw Conflict error
 
 Frontend
 - Breadcrumb navigation
+- Drag and Drop
 
 Nice to Haves:
 - share files
 - favorite files
-- Drag and Drop (frontend?)
 - organize/filters

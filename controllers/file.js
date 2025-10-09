@@ -88,7 +88,7 @@ async function download(req, res, next) {
   );
 
   res.json(downloadUrl);
-  // res.redirect(downloadUrl); // for DEPLOY
+  // res.redirect(downloadUrl); // for DEPLOY?
 }
 
 async function updateFilename(req, res) {
