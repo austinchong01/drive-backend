@@ -96,6 +96,13 @@ Folders
   - check storage
   - check if folders and files exist
 
+API
+  - Search
+    - search nested folders and files
+      - not case sensitive
+      - find q anywhere in name
+        - EX. q = "c": common, ascas, c, ASDFC
+    - return nothing on empty query
 
 Other
 

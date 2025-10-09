@@ -7,8 +7,11 @@ async function search(req, res) {
 
   const folders = await prisma.folder.findMany({
     where: {
-      name: q,
-      userId: userId,
+      name: {
+        contains: q,
+        mode: 'insensitive',  // Case-insensitive search
+      },
+      userId,
     },
     orderBy: {
       updatedAt: "desc",
@@ -17,8 +20,11 @@ async function search(req, res) {
 
   const files = await prisma.file.findMany({
     where: {
-      name: q,
-      userId: userId,
+      displayName: {
+        contains: q,
+        mode: 'insensitive',
+      },
+      userId,
     },
     orderBy: {
       updatedAt: "desc",

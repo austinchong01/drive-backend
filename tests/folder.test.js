@@ -68,7 +68,6 @@ describe("Folder w/ JWT", () => {
       .send({
         name: "testFolderName",
       });
-    console.log(await prisma.folder.findMany({where: {parentId: "root"}}))
     expect(response.statusCode).toBe(409);
   });
 

@@ -60,7 +60,7 @@ describe("File", () => {
       .attach(
         "image",
         path.join(__dirname, "../public/upload_tests/image.jpg")
-      ); // Attach the file
+      );
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty("file");
     expect(response.body.file.folderId).toBe("root");
@@ -112,7 +112,6 @@ describe("File", () => {
         "image",
         path.join(__dirname, "../public/upload_tests/image.jpg")
       );
-    console.log(await prisma.file.findMany({ where: { folderId: "root" } }));
     expect(response.statusCode).toBe(409);
   });
 

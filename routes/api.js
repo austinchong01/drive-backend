@@ -4,6 +4,6 @@ const api = require("../controllers/api");
 const val = require("../middleware/validation");
 const authenticateToken = require("../config/jwt");
 
-router.get("/search", authenticateToken, val.validateName, api.search);
+router.get("/search", authenticateToken, api.search);
 
 module.exports = router;
