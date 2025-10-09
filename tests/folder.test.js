@@ -55,7 +55,7 @@ describe("Folder w/ JWT", () => {
       .post("/folders/upload")
       .set("Authorization", `Bearer ${authToken}`)
       .send({
-        name: "testFilename",
+        name: "testFolderName",
       });
     expect(response.statusCode).toBe(201);
     folderId = response.body.folder.id;
@@ -66,21 +66,19 @@ describe("Folder w/ JWT", () => {
       .post(`/folders/${folderId}/upload`)
       .set("Authorization", `Bearer ${authToken}`)
       .send({
-        name: "testFolderinFolder",
+        name: "testFolderInFolder",
       });
     expect(response.statusCode).toBe(201);
 
     // Find the parent folder and check if its children contains the new folder
-    const parentFolder = await prisma.folder.findUnique({
-      where: { id: response.body.folder.parentId },
-      include: { children: true },
+    const check = await prisma.folder.findUnique({
+      where: { id: response.body.folder.id },
+      select: { parentId: true },
     });
-    const childExists = parentFolder.children.some(
-      (child) => child.id === response.body.folder.id
-    );
-    expect(childExists).toBe(true);
+    expect(check.parentId === folderId).toBe(true);
   });
 
+  let breadFolderId;
   test("Get folder contents with subfolders and files", async () => {
     // Create a subfolder inside the root folder
     const subfolderResponse = await request(app)
@@ -124,8 +122,54 @@ describe("Folder w/ JWT", () => {
     expect(returnedFile2.displayName).toBe("testFileFolder2");
 
     // Cleanup
-    await prisma.folder.delete({
-      where: { id: folderId },
+    breadFolderId = subfolderResponse.body.folder.id;
+    await prisma.file.deleteMany({
+      where: {
+        id: {
+          in: [file1Response.body.file.id, file2Response.body.file.id],
+        },
+      },
     });
+  });
+
+  test("Breadcrumb", async () => {
+    const breadcrumb = await request(app)
+      .get(`/folders/${breadFolderId}/crumbs`)
+      .set("Authorization", `Bearer ${authToken}`);
+    const result = breadcrumb.body.breadcrumbs;
+    expect(breadcrumb.body.breadcrumbs.length === 2);
+    expect(result[0].id == folderId);
+    expect(result[1].id == breadFolderId);
+  });
+
+  test("Update Name", async () => {
+    const newName = await request(app)
+      .patch(`/folders/${breadFolderId}/newFolderName`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "updatedFolderName",
+      });
+    expect(newName.body.name == "updatedFolderName");
+  });
+
+  test("Update Location", async () => {
+    await request(app)
+      .patch(`/folders/${breadFolderId}/newFolderLocation`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newParentId: null,
+      });
+    const newFolderParent = await prisma.folder.findUnique({
+      where: { id: breadFolderId },
+      select: { parentId: true },
+    });
+    expect(newFolderParent.parentId).toBeNull();
+  });
+
+  test("Delete a nested Folder", async () => {
+    const response = await request(app)
+      .delete(`/folders/${folderId}/`)
+      .set("Authorization", `Bearer ${authToken}`);
+    expect(response.statusCode).toBe(204);
   });
 });

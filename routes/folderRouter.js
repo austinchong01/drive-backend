@@ -9,8 +9,8 @@ router.post("/:folderId?/upload", authenticateToken, val.validateFolderName, fol
 router.get("/:folderId", authenticateToken, folder.getContents);
 router.get("/:folderId/crumbs", authenticateToken, folder.getBreadCrumbs);
 
-router.patch("/:folderId", authenticateToken, val.validateFileName, folder.updateFolder);
-router.patch("/:folderId/location", authenticateToken, folder.updateFolderLoc); 
+router.patch("/:folderId/newFolderName", authenticateToken, val.validateFolderName, folder.updateFolder);
+router.patch("/:folderId/newFolderLocation", authenticateToken, folder.updateFolderLoc); 
 
 router.delete("/:folderId", authenticateToken, folder.deleteFolder);
 

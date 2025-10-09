@@ -79,7 +79,6 @@ async function getBreadCrumbs(req, res, next) {
       id: folder.id,
       name: folder.name,
     });
-
     folderId = folder.parentId;
   }
 
@@ -91,22 +90,18 @@ async function getBreadCrumbs(req, res, next) {
 async function updateFolder(req, res) {
   const userId = req.user.userId; // JWT
   const { folderId } = req.params;
-  const { displayName } = req.body;
+  const { name } = req.body;
 
   const updatedFolder = await prisma.folder.update({
     where: { id: folderId, userId },
     data: {
-      name: displayName,
-    },
-    select: {
-      name: true,
+      name,
     },
   });
-
+  
   return res.json(updatedFolder);
 }
 
-// check if newParentId exists?
 async function updateFolderLoc(req, res) {
   const userId = req.user.userId; // JWT
   const { folderId } = req.params;
@@ -137,9 +132,8 @@ async function deleteFolder(req, res, next) {
       userId,
     },
   });
-  if (!folder) 
-    return next(new NotFoundError('Folder not found or access denied'));
-
+  if (!folder)
+    return next(new NotFoundError("Folder not found or access denied"));
 
   // get all folderIds within folderId
   const foldersToCheck = [folderId];

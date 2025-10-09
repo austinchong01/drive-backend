@@ -326,8 +326,8 @@ describe("Validation", () => {
   });
 
   describe("New Folder Name", () => {
-    const runValidation = async (displayName) => {
-      const req = { body: { displayName } };
+    const runValidation = async (name) => {
+      const req = { body: { name } };
       const res = {};
       let error;
       const next = (err) => {
