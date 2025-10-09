@@ -166,6 +166,11 @@ describe("Folder w/ JWT", () => {
     expect(newFolderParent.parentId).toBeNull();
   });
 
+  // add a folder within a folder, add files there
+  // add files to the null directory
+  // add files to one of the folder in the null directory
+  // check if storage is correct
+  // check if files and folders still exist
   test("Delete a nested Folder", async () => {
     const response = await request(app)
       .delete(`/folders/${folderId}/`)
