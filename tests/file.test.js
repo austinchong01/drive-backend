@@ -16,6 +16,7 @@ app.use(express.json());
 
 app.use("/", require("../routes/userRouter"));
 app.use("/files", require("../routes/fileRouter"));
+app.use("/folders", require("../routes/folderRouter"));
 
 app.use((err, req, res, next) => {
   err = multerErrorHandler(err);
@@ -55,7 +56,7 @@ describe("File", () => {
     const response = await request(app)
       .post("/files/upload")
       .set("Authorization", `Bearer ${authToken}`)
-      .field("displayName", "MyTestFile")
+      .field("name", "MyTestFile")
       .attach(
         "image",
         path.join(__dirname, "../public/upload_tests/image.jpg")
@@ -72,7 +73,7 @@ describe("File", () => {
   //   const response = await request(app)
   //     .post("/files/123/upload")
   //     .set("Authorization", `Bearer ${authToken}`)
-  //     .field("displayName", "MyTestFile")
+  //     .field("name", "MyTestFile")
   //     .attach(
   //       "image",
   //       path.join(__dirname, "../public/upload_tests/image.jpg")
@@ -89,13 +90,13 @@ describe("File", () => {
     const response = await request(app)
       .post("/files/upload")
       .set("Authorization", `Bearer ${authToken}`)
-      .field("displayName", "MyTestFile");
+      .field("name", "MyTestFile");
 
     expect(response.statusCode).toBe(400);
     expect(response.body.error).toBe("BadRequestError");
   });
 
-  test("Upload w/o displayName", async () => {
+  test("Upload w/o name", async () => {
     const response = await request(app)
       .post("/files/upload")
       .set("Authorization", `Bearer ${authToken}`)
@@ -141,7 +142,7 @@ describe("File", () => {
     const response = await request(app)
       .post("/files/upload")
       .set("Authorization", `Bearer ${authToken}`)
-      .field("displayName", "FailedUploadFile")
+      .field("name", "FailedUploadFile")
       .attach("image", Buffer.alloc(1000, "a"), "test.jpg");
     expect(response.statusCode).toBe(500);
 
@@ -180,7 +181,7 @@ describe("File w/ JWT and uploadedFile", () => {
     const fileResponse = await request(app)
       .post("/files/upload")
       .set("Authorization", `Bearer ${authToken}`)
-      .field("displayName", "MyTestFile")
+      .field("name", "MyTestFile")
       .attach(
         "image",
         path.join(__dirname, "../public/upload_tests/image.jpg")
@@ -201,22 +202,30 @@ describe("File w/ JWT and uploadedFile", () => {
       .patch(`/files/${fileId}/updateFileName`)
       .set("Authorization", `Bearer ${authToken}`)
       .send({
-        displayName: "updatedFilename",
+        name: "updatedFilename",
       });
     expect(response.statusCode).toBe(200);
     expect(response.body.displayName).toBe("updatedFilename");
   });
 
-  // test("Update file location", async () => {
-  //   const response = await request(app)
-  //     .patch(`/${fileId}/updateFileLocation`)
-  //     .set("Authorization", `Bearer ${authToken}`)
-  //     .send({
-  //       folderId: "newFolderId",
-  //     });
-  //   expect(response.statusCode).toBe(200);
-  //   expect(response.body.folderId).toBe("newFolderId");
-  // });
+  test("Update file location", async () => {
+    const folderResponse = await request(app)
+      .post(`/folders/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "newFileFolderLoc",
+      });
+    const newFolderId = folderResponse.body.folder.id;
+
+    const response = await request(app)
+      .patch(`/files/${fileId}/updateFileLocation`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newFolderId,
+      });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.folderId).toBe(newFolderId);
+  });
 
   test("File should remain in DB when Cloudinary delete fails", async () => {
     // Mock Cloudinary destroy to fail
@@ -312,7 +321,7 @@ describe("File w/o JWT", () => {
     const response1 = await request(app)
       .post("/files/upload")
       .set("Authorization", `Bearer ${testAuthToken}`)
-      .field("displayName", "FirstFile")
+      .field("name", "FirstFile")
       .attach("image", Buffer.alloc(500000, "a"), "storage1.jpg"); // 0.5MB
 
     expect(response1.statusCode).toBe(201);
@@ -322,7 +331,7 @@ describe("File w/o JWT", () => {
     const response2 = await request(app)
       .post("/files/upload")
       .set("Authorization", `Bearer ${testAuthToken}`)
-      .field("displayName", "SecondFile")
+      .field("name", "SecondFile")
       .attach("image", Buffer.alloc(1000000, "c"), "storage2.jpg"); // 1MB
 
     expect(response2.statusCode).toBe(400);

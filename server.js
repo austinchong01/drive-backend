@@ -24,6 +24,7 @@ app.get("/health", (req, res) => {
 app.use("/", require("./routes/userRouter"));
 app.use("/files", require("./routes/fileRouter"));
 app.use('/folders', require('./routes/folderRouter'));
+app.use("/api", require("./routes/api"));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));

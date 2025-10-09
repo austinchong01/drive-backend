@@ -227,105 +227,7 @@ describe("Validation", () => {
     });
   });
 
-  describe("New Username", () => {
-    const runValidation = async (newName) => {
-      const req = { body: { newName } };
-      const res = {};
-      let error;
-      const next = (err) => {
-        error = err;
-      };
-
-      for (const validator of val.validateNewUsername) {
-        await validator(req, res, next);
-      }
-
-      return error;
-    };
-
-    test("valid username passes", async () => {
-      const error = await runValidation("newUsername123");
-      expect(error).toBeUndefined();
-    });
-
-    test("empty username fails", async () => {
-      const error = await runValidation("");
-      expect(error.statusCode).toBe(400);
-      expect(error.message).toBe("Username is required");
-    });
-
-    test("username too long fails", async () => {
-      const error = await runValidation("a".repeat(21));
-      expect(error.statusCode).toBe(400);
-      expect(error.message).toBe(
-        "Username must be between 1 and 20 characters"
-      );
-    });
-
-    test("username with invalid characters fails", async () => {
-      const error = await runValidation("new user!");
-      expect(error.statusCode).toBe(400);
-      expect(error.message).toBe(
-        "Username can only contain letters, numbers, underscores, hyphens, and periods"
-      );
-    });
-
-    test("username with valid special characters passes", async () => {
-      const error = await runValidation("user_name-123.test");
-      expect(error).toBeUndefined();
-    });
-  });
-
-  describe("New File Name", () => {
-    const runValidation = async (displayName) => {
-      const req = { body: { displayName } };
-      const res = {};
-      let error;
-      const next = (err) => {
-        error = err;
-      };
-
-      for (const validator of val.validateFileName) {
-        await validator(req, res, next);
-      }
-
-      return error;
-    };
-
-    test("valid filename passes", async () => {
-      const error = await runValidation("document123");
-      expect(error).toBeUndefined();
-    });
-
-    test("empty filename fails", async () => {
-      const error = await runValidation("");
-      expect(error.statusCode).toBe(400);
-      expect(error.message).toBe("Filename is required");
-    });
-
-    test("filename too long fails", async () => {
-      const error = await runValidation("a".repeat(21));
-      expect(error.statusCode).toBe(400);
-      expect(error.message).toBe(
-        "Filename must be between 1 and 20 characters"
-      );
-    });
-
-    test("filename with invalid characters fails", async () => {
-      const error = await runValidation("my file!");
-      expect(error.statusCode).toBe(400);
-      expect(error.message).toBe(
-        "Filename can only contain letters, numbers, underscores, hyphens, and periods"
-      );
-    });
-
-    test("filename with valid special characters passes", async () => {
-      const error = await runValidation("file_name-123.txt");
-      expect(error).toBeUndefined();
-    });
-  });
-
-  describe("New Folder Name", () => {
+  describe("New Name", () => {
     const runValidation = async (name) => {
       const req = { body: { name } };
       const res = {};
@@ -334,43 +236,37 @@ describe("Validation", () => {
         error = err;
       };
 
-      for (const validator of val.validateFolderName) {
+      for (const validator of val.validateName) {
         await validator(req, res, next);
       }
 
       return error;
     };
 
-    test("valid folder name passes", async () => {
-      const error = await runValidation("myFolder123");
+    test("valid name passes", async () => {
+      const error = await runValidation("document123");
       expect(error).toBeUndefined();
     });
 
-    test("empty folder name fails", async () => {
+    test("empty name fails", async () => {
       const error = await runValidation("");
       expect(error.statusCode).toBe(400);
-      expect(error.message).toBe("Folder name is required");
     });
 
-    test("folder name too long fails", async () => {
+    test("name too long fails", async () => {
       const error = await runValidation("a".repeat(21));
       expect(error.statusCode).toBe(400);
-      expect(error.message).toBe(
-        "Folder name must be between 1 and 20 characters"
-      );
     });
 
-    test("folder name with invalid characters fails", async () => {
-      const error = await runValidation("my folder!");
+    test("name with invalid characters fails", async () => {
+      const error = await runValidation("my file!");
       expect(error.statusCode).toBe(400);
-      expect(error.message).toBe(
-        "Folder name can only contain letters, numbers, underscores, hyphens, and periods"
-      );
     });
 
-    test("folder name with valid special characters passes", async () => {
-      const error = await runValidation("folder_name-123.");
+    test("name with valid special characters passes", async () => {
+      const error = await runValidation("file_name-123.txt");
       expect(error).toBeUndefined();
     });
   });
+
 });

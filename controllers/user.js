@@ -92,12 +92,12 @@ async function getStorage(req, res, next) {
 
 async function updateUsername(req, res) {
   const userId = req.user.userId; // JWT
-  const { newName } = req.body;
+  const { name } = req.body;
 
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {
-      username: newName,
+      username: name,
     },
     select: {
       username: true,

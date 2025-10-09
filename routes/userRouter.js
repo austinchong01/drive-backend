@@ -11,8 +11,8 @@ router.post("/auth/logout", authenticateToken, user.logout);
 router.get("/profile", authenticateToken, user.getUser);
 router.get("/storage", authenticateToken, user.getStorage);
 
-router.patch("/profile", authenticateToken, val.validateNewUsername, user.updateUsername);
+router.patch("/profile", authenticateToken, val.validateName, user.updateUsername);
 
-router.delete("/profile/", authenticateToken, user.deleteUser);
+router.delete("/profile", authenticateToken, user.deleteUser);
 
 module.exports = router;

@@ -60,59 +60,16 @@ const validateLogin = [
   },
 ];
 
-const validateNewUsername = [
-  body("newName")
-    .trim()
-    .notEmpty()
-    .withMessage("Username is required")
-    .isLength({ min: 1, max: 20 })
-    .withMessage("Username must be between 1 and 20 characters")
-    .matches(/^[a-zA-Z0-9_.-]+$/)
-    .withMessage(
-      "Username can only contain letters, numbers, underscores, hyphens, and periods"
-    )
-    .escape(),
-
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty())
-      return next(new BadRequestError(errors.errors[0].msg));
-    next();
-  },
-];
-
-const validateFileName = [
-  body("displayName")
-    .trim()
-    .notEmpty()
-    .withMessage("Filename is required")
-    .isLength({ min: 1, max: 20 })
-    .withMessage("Filename must be between 1 and 20 characters")
-    .matches(/^[a-zA-Z0-9_.-]+$/)
-    .withMessage(
-      "Filename can only contain letters, numbers, underscores, hyphens, and periods"
-    )
-    .escape(),
-
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return next(new BadRequestError(errors.errors[0].msg));
-    }
-    next();
-  },
-];
-
-const validateFolderName = [
+const validateName = [
   body("name")
     .trim()
     .notEmpty()
-    .withMessage("Folder name is required")
-    .isLength({ min: 1, max: 20 })
-    .withMessage("Folder name must be between 1 and 20 characters")
+    .withMessage("Name is required")
+    .isLength({ min: 1, max: 30 })
+    .withMessage("Name must be between 1 and 30 characters")
     .matches(/^[a-zA-Z0-9_.-]+$/)
     .withMessage(
-      "Folder name can only contain letters, numbers, underscores, hyphens, and periods"
+      "Name can only contain letters, numbers, underscores, hyphens, and periods"
     )
     .escape(),
 
@@ -126,4 +83,4 @@ const validateFolderName = [
 ];
 
 
-module.exports = { validateUser, validateLogin, validateNewUsername, validateFileName, validateFolderName };
+module.exports = { validateUser, validateLogin, validateName };

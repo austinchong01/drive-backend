@@ -96,7 +96,7 @@ describe("User Tests w/ JWT", () => {
       .patch("/profile")
       .set("Authorization", `Bearer ${authToken}`)
       .send({
-        newName: "updatedTestUser",
+        name: "updatedTestUser",
       });
 
     expect(response.statusCode).toBe(200);

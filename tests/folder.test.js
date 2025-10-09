@@ -61,6 +61,7 @@ describe("Folder w/ JWT", () => {
     folderId = response.body.folder.id;
   });
 
+  let testFolderinFolderId;
   test("Create in folder", async () => {
     const response = await request(app)
       .post(`/folders/${folderId}/upload`)
@@ -76,6 +77,7 @@ describe("Folder w/ JWT", () => {
       select: { parentId: true },
     });
     expect(check.parentId === folderId).toBe(true);
+    testFolderinFolderId = response.body.folder.id;
   });
 
   let breadFolderId;
@@ -92,14 +94,14 @@ describe("Folder w/ JWT", () => {
     const file1Response = await request(app)
       .post(`/files/${folderId}/upload`)
       .set("Authorization", `Bearer ${authToken}`)
-      .field("displayName", "testFileFolder1")
+      .field("name", "testFileFolder1")
       .attach("image", Buffer.alloc(1000, "a"), "testFileFolder1.jpg");
 
     // Create second file
     const file2Response = await request(app)
       .post(`/files/${folderId}/upload`)
       .set("Authorization", `Bearer ${authToken}`)
-      .field("displayName", "testFileFolder2")
+      .field("name", "testFileFolder2")
       .attach("image", Buffer.alloc(2000, "b"), "testFileFolder2.png");
 
     // Get the contents of the root folder
@@ -121,15 +123,7 @@ describe("Folder w/ JWT", () => {
     );
     expect(returnedFile2.displayName).toBe("testFileFolder2");
 
-    // Cleanup
     breadFolderId = subfolderResponse.body.folder.id;
-    await prisma.file.deleteMany({
-      where: {
-        id: {
-          in: [file1Response.body.file.id, file2Response.body.file.id],
-        },
-      },
-    });
   });
 
   test("Breadcrumb", async () => {
@@ -166,15 +160,33 @@ describe("Folder w/ JWT", () => {
     expect(newFolderParent.parentId).toBeNull();
   });
 
-  // add a folder within a folder, add files there
-  // add files to the null directory
-  // add files to one of the folder in the null directory
-  // check if storage is correct
-  // check if files and folders still exist
   test("Delete a nested Folder", async () => {
+    await request(app)
+      .post(`/files/${testFolderinFolderId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .field("name", "testFileFolder3")
+      .attach("image", Buffer.alloc(1000, "a"), "testFileFolder3.jpg");
+
     const response = await request(app)
       .delete(`/folders/${folderId}/`)
       .set("Authorization", `Bearer ${authToken}`);
     expect(response.statusCode).toBe(204);
+
+    // check storage
+    const decoded = jwt.decode(authToken);
+    const userId = decoded.userId;
+    const currStorage = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { storage: true },
+    });
+    expect(currStorage.storage).toBe(0);
+
+    // check if files and folders still exist
+    const foundFolders = await prisma.folder.findMany({
+      where: { parentId: folderId },
+    });
+    const foundFiles = await prisma.file.findMany({ where: { folderId } });
+    expect(foundFolders).toHaveLength(0);
+    expect(foundFiles).toHaveLength(0);
   });
 });

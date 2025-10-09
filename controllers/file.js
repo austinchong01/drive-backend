@@ -37,7 +37,7 @@ async function createFile(req, res, next) {
           userId: userId,
           folderId: folderId,
           originalName: req.file.originalname,
-          displayName: req.body.displayName,
+          displayName: req.body.name,
           cloudinaryUrl: result.secure_url,
           cloudinaryPublicId: result.public_id,
           cloudinaryResourceType: result.resource_type,
@@ -93,12 +93,12 @@ async function download(req, res, next) {
 async function updateFilename(req, res) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
-  const { displayName } = req.body;
+  const { name } = req.body;
 
   const updatedFile = await prisma.file.update({
     where: { id: fileId, userId },
     data: {
-      displayName: displayName,
+      displayName: name,
     },
     select: {
       displayName: true,

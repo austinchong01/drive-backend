@@ -1,5 +1,6 @@
 Testing Notes
 
+
 Users
 
 - POST Register
@@ -35,6 +36,7 @@ Users
     - return 204
   - invalid userId
     - NotFoundError
+
 
 Files
 
@@ -72,16 +74,28 @@ Files
   - Cloudinary error
     - not in DB
 
+
 Folders
 
 - POST Create Folder
   - create folder w/o parent folder
   - create folder w/ parent
 - GET Contents
+  - create folder with two files
+  - validate found files and folders
 - GET Breadcrumbs
+  - valid fields
+    - validate nested folder path
 - PATCH Update Folder Name
+  - valid fields
+    - validate return value has new name
 - PATCH Update Folder Location
+  - validate moved folder has new parentId
 - DELETE Folder
+  - nested folders and nested files
+  - check storage
+  - check if folders and files exist
+
 
 Other
 
@@ -90,15 +104,12 @@ Other
     - username, email, password
   - validateLogin
     - email, password
-  - validateNewUsername
-  - validateFileName
-  - validateFolderName
-- Authenticate JWT mw
-  - no token
-    - UnauthorizedError
-  - invalid or expired token
-    - ForbiddenError
+  - validateName
+    - name
+
 
 misc notes
 
 - server failures?
+- need transactions?
+- search test?
