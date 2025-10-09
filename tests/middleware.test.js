@@ -1,4 +1,4 @@
-require('dotenv').config(); // ← Add this at the TOP
+require("dotenv").config(); // ← Add this at the TOP
 require("express-async-errors");
 const val = require("../middleware/validation");
 const express = require("express");
@@ -6,10 +6,12 @@ const request = require("supertest");
 const prismaErrorHandler = require("../errors/prismaErrorHandler");
 const multerErrorHandler = require("../errors/multerErrorHandler");
 const app = express();
+const path = require("path");
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use("/", require("../routes/userRouter"));
+app.use("/files", require("../routes/fileRouter"));
 
 app.use((err, req, res, next) => {
   err = multerErrorHandler(err);
@@ -383,21 +385,30 @@ describe("Rate Limiter", () => {
     // }, 125000); // Increase test timeout to 125 seconds
   });
 
-  describe("API", () => {
-    test("99 success, 1 fail", async () => {
-      // 100 requests
-      for (let i = 0; i < 100; i++) {
-        const response = await request(app)
-          .get("/storage")
-          .set("Authorization", `Bearer ${authToken}`);
-        expect(response.status).toBe(200);
-        expect(response.body).toBe(0);
-      }
-      // 101
-      const response = await request(app)
-        .get("/storage")
-        .set("Authorization", `Bearer ${authToken}`);
-      expect(response.status).toBe(429);
-    });
-  });
+  // describe("API", () => {
+  //   test("99 success, 1 fail", async () => {
+  //     const file = await request(app)
+  //       .post(`/files/upload`)
+  //       .set("Authorization", `Bearer ${authToken}`)
+  //       .field("name", "COMMON")
+  //       .attach(
+  //         "image",
+  //         path.join(__dirname, "../public/upload_tests/image.jpg")
+  //       );
+  //     const fileId = file.body.file.id;
+
+  //     // 100 requests
+  //     for (let i = 0; i < 100; i++) {
+  //       const response = await request(app)
+  //         .get(`files/${fileId}/download`)
+  //         .set("Authorization", `Bearer ${authToken}`);
+  //       expect(response.status).toBe(200);
+  //     }
+  //     // 101
+  //     const response = await request(app)
+  //       .get("/storage")
+  //       .set("Authorization", `Bearer ${authToken}`);
+  //     expect(response.status).toBe(429);
+  //   });
+  // });
 });

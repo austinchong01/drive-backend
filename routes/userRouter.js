@@ -10,7 +10,7 @@ router.post("/auth/login", limiter.login, val.validateLogin, user.login);
 router.post("/auth/logout", authenticateToken, user.logout);
 
 router.get("/profile", authenticateToken, user.getUser);
-router.get("/storage", authenticateToken, limiter.api, user.getStorage);
+router.get("/storage", authenticateToken, user.getStorage);
 
 router.patch("/profile", authenticateToken, val.validateName, user.updateUsername);
 

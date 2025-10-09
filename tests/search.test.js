@@ -3,8 +3,13 @@ require("express-async-errors");
 const express = require("express");
 const path = require("path");
 const request = require("supertest");
+const jwt = require("jsonwebtoken");
 const prismaErrorHandler = require("../errors/prismaErrorHandler");
 const multerErrorHandler = require("../errors/multerErrorHandler");
+const { PrismaClient } = require("@prisma/client");
+const { decode } = require("punycode");
+const prisma = new PrismaClient();
+
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -12,7 +17,7 @@ app.use(express.json());
 app.use("/", require("../routes/userRouter"));
 app.use("/files", require("../routes/fileRouter"));
 app.use("/folders", require("../routes/folderRouter"));
-app.use("/api", require("../routes/api"));
+app.use("/api", require("../routes/apiRouter"));
 
 app.use((err, req, res, next) => {
   err = multerErrorHandler(err);
