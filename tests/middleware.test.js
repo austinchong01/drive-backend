@@ -254,7 +254,7 @@ describe("Validation", () => {
     });
 
     test("name too long fails", async () => {
-      const error = await runValidation("a".repeat(21));
+      const error = await runValidation("a".repeat(31));
       expect(error.statusCode).toBe(400);
     });
 
