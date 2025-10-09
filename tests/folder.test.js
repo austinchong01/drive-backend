@@ -159,11 +159,8 @@ describe("Folder w/ JWT", () => {
 
   test("Update Location", async () => {
     await request(app)
-      .patch(`/folders/${breadFolderId}/newFolderLocation`)
+      .patch(`/folders/${breadFolderId}/newFolderLocation?newParentId=root`)
       .set("Authorization", `Bearer ${authToken}`)
-      .send({
-        newParentId: null,
-      });
     const newFolderParent = await prisma.folder.findUnique({
       where: { id: breadFolderId },
       select: { parentId: true },

@@ -112,7 +112,7 @@ async function updateFilename(req, res) {
 async function updateFileLoc(req, res) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
-  let { newFolderId } = req.body;
+  let { newFolderId } = req.query;
   if (newFolderId == null) newFolderId = "root";
 
   const updatedFile = await prisma.file.update({

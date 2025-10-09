@@ -62,23 +62,25 @@ API Endpoints
     - update storage
 
 - Folders
-  - POST /folders
+  - POST /folders/{folderId}/upload
     - create folder
 
-  - GET /folders?parentId={id}
+  - GET /folders/{folderId}
     - get BOTH files AND folder in a folder (null if root)
     - sort by folder, file, then uploaded/updated at
     - include pagination for large folders?
-  - GET /folders/{folderId}
+  - GET /folders/{folderId}/crumbs
     - get folder details + breadcrumb path
     
-  - PATCH /folders/{folderId}
-    - rename AND/OR move folder
+  - PATCH /folders/{folderId}/newFolderName
+    - rename folder
+  - PATCH /folders/{folderId}/newFolderLocation
+    - move folder to new parentId
 
   - DELETE /folders/{folderId}
     - delete folder, all children, files, and update storage
 
-- Other
+- API
   - GET /search?q={name}
     - Search folders and files by name
 
@@ -87,22 +89,18 @@ Implementation
   - Prisma specific errors
 - Sanitation/Validation
 - JWT session handling
-- Unit Testing
-- Integrated Testing
 - Rate Limiting
 - Performance Optimization
   - limiting query results
 - pagination?
 - Testing
-  - Unit
   - Integrated
-  - End-to-End
+- When moving, need to check unique folder/files names
 
 Frontend
 - Breadcrumb navigation
 
 Nice to Haves:
-
 - share files
 - favorite files
 - Drag and Drop (frontend?)

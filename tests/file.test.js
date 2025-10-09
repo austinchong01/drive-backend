@@ -248,11 +248,8 @@ describe("File w/ JWT and uploadedFile", () => {
     const newFolderId = folderResponse.body.folder.id;
 
     const response = await request(app)
-      .patch(`/files/${fileId}/updateFileLocation`)
+      .patch(`/files/${fileId}/updateFileLocation?newFolderId=${newFolderId}`)
       .set("Authorization", `Bearer ${authToken}`)
-      .send({
-        newFolderId,
-      });
     expect(response.statusCode).toBe(200);
     expect(response.body.folderId).toBe(newFolderId);
   });
