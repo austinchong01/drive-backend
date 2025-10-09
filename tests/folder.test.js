@@ -1,6 +1,6 @@
+require('dotenv').config(); // ← Add this at the TOP
 require("express-async-errors");
 const express = require("express");
-const path = require("path");
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const prismaErrorHandler = require("../errors/prismaErrorHandler");

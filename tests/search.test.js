@@ -1,14 +1,10 @@
+require('dotenv').config(); // ← Add this at the TOP
 require("express-async-errors");
 const express = require("express");
 const path = require("path");
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
 const prismaErrorHandler = require("../errors/prismaErrorHandler");
 const multerErrorHandler = require("../errors/multerErrorHandler");
-const { PrismaClient } = require("@prisma/client");
-const { decode } = require("punycode");
-const prisma = new PrismaClient();
-
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());

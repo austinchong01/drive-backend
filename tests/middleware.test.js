@@ -1,4 +1,32 @@
+require('dotenv').config(); // ← Add this at the TOP
+require("express-async-errors");
 const val = require("../middleware/validation");
+const express = require("express");
+const request = require("supertest");
+const prismaErrorHandler = require("../errors/prismaErrorHandler");
+const multerErrorHandler = require("../errors/multerErrorHandler");
+const app = express();
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+app.use("/", require("../routes/userRouter"));
+
+app.use((err, req, res, next) => {
+  err = multerErrorHandler(err);
+  err = prismaErrorHandler(err);
+
+  if (!err.statusCode || err.statusCode >= 500) {
+    console.log("Status 500 Error");
+    return res.status(500).json({
+      error: "InternalServerError",
+      message: err.message, // FOR DEVELOPMENT
+    });
+  }
+  res.status(err.statusCode).json({
+    error: err.name,
+    message: err.message,
+  });
+});
 
 describe("Validation", () => {
   describe("User", () => {
@@ -268,5 +296,108 @@ describe("Validation", () => {
       expect(error).toBeUndefined();
     });
   });
+});
 
+describe("Rate Limiter", () => {
+  let authToken;
+
+  // create test user
+  beforeAll(async () => {
+    const response = await request(app).post("/auth/register").send({
+      username: "loginTestUser",
+      email: "logintest@example.com",
+      password: "pass123",
+    });
+
+    authToken = response.body.token;
+  });
+
+  // delete test user
+  afterAll(async () => {
+    await request(app)
+      .delete("/profile/")
+      .set("Authorization", `Bearer ${authToken}`);
+  });
+
+  describe("Login", () => {
+    test("3 failed, 1 success, 2 failed, 6th blocked", async () => {
+      // Make 3 failed attempts
+      for (let i = 0; i < 3; i++) {
+        await request(app).post("/auth/login").send({
+          email: "logintest@example.com",
+          password: "wrongpassword",
+        });
+      }
+
+      // Make a successful login - should NOT be counted
+      const successResponse = await request(app).post("/auth/login").send({
+        email: "logintest@example.com",
+        password: "pass123",
+      });
+      expect(successResponse.status).toBe(200);
+      expect(successResponse.body.token).toBeDefined();
+
+      // Make 2 more failed attempts (total 5 failed)
+      for (let i = 0; i < 2; i++) {
+        const response = await request(app).post("/auth/login").send({
+          email: "logintest@example.com",
+          password: "wrongpassword",
+        });
+        expect(response.status).toBe(401);
+      }
+
+      // 6th failed attempt should be blocked
+      const blockedResponse = await request(app).post("/auth/login").send({
+        email: "logintest@example.com",
+        password: "wrongpassword",
+      });
+      expect(blockedResponse.status).toBe(429);
+    });
+
+    // test("should reset rate limit after 2 minutes", async () => {
+    //   // Make 5 failed attempts to trigger rate limit
+    //   for (let i = 0; i < 5; i++) {
+    //     await request(app).post("/auth/login").send({
+    //       email: "logintest@example.com",
+    //       password: "wrongpassword",
+    //     });
+    //   }
+
+    //   // Verify we're blocked
+    //   const blockedResponse = await request(app).post("/auth/login").send({
+    //     email: "logintest@example.com",
+    //     password: "wrongpassword",
+    //   });
+    //   expect(blockedResponse.status).toBe(429);
+
+    //   // Wait 2 minutes + buffer (2 minutes = 120,000ms)
+    //   await new Promise((resolve) => setTimeout(resolve, 121000));
+
+    //   // Should be able to login again
+    //   const response = await request(app).post("/auth/login").send({
+    //     email: "logintest@example.com",
+    //     password: "wrongpassword",
+    //   });
+
+    //   expect(response.status).toBe(401); // Not 429 anymore
+    // }, 125000); // Increase test timeout to 125 seconds
+  });
+
+  describe("API", () => {
+    test("99 success, 1 fail", async () => {
+      // 100 requests
+      for (let i = 0; i < 100; i++) {
+        const response = await request(app)
+          .get("/storage")
+          .set("Authorization", `Bearer ${authToken}`);
+        expect(response.status).toBe(200);
+        expect(response.body).toBe(0);
+      }
+      // 101
+      const response = await request(app)
+        .get("/storage")
+        .set("Authorization", `Bearer ${authToken}`);
+      expect(response.status).toBe(429);
+    });
+  });
 });
