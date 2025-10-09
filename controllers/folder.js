@@ -6,7 +6,8 @@ const prisma = new PrismaClient();
 
 async function createFolder(req, res, next) {
   const userId = req.user.userId;
-  const folderId = req.params.folderId;
+  let folderId = req.params.folderId;
+  if (folderId == null) folderId = "root";
   const { name } = req.body;
 
   const folder = await prisma.folder.create({
@@ -25,7 +26,8 @@ async function createFolder(req, res, next) {
 
 async function getContents(req, res) {
   const userId = req.user.userId;
-  const folderId = req.params.folderId;
+  let folderId = req.params.folderId;
+  if (folderId == null) folderId = "root";
 
   const subfolders = await prisma.folder.findMany({
     where: {
@@ -56,6 +58,7 @@ async function getContents(req, res) {
 async function getBreadCrumbs(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
+  if (folderId == null) folderId = "root";
 
   const breadcrumbs = [];
 
@@ -89,7 +92,8 @@ async function getBreadCrumbs(req, res, next) {
 
 async function updateFolder(req, res) {
   const userId = req.user.userId; // JWT
-  const { folderId } = req.params;
+  let { folderId } = req.params;
+  if (folderId == null) folderId = "root";
   const { name } = req.body;
 
   const updatedFolder = await prisma.folder.update({
@@ -104,8 +108,10 @@ async function updateFolder(req, res) {
 
 async function updateFolderLoc(req, res) {
   const userId = req.user.userId; // JWT
-  const { folderId } = req.params;
-  const { newParentId } = req.body;
+  let { folderId } = req.params;
+  if (folderId == null) folderId = "root";
+  let { newParentId } = req.body;
+  if (newParentId == null) newParentId = "root";
 
   const updatedFolder = await prisma.folder.update({
     where: { id: folderId, userId },
@@ -122,7 +128,8 @@ async function updateFolderLoc(req, res) {
 
 async function deleteFolder(req, res, next) {
   const userId = req.user.userId; // JWT
-  const { folderId } = req.params;
+  let { folderId } = req.params;
+  if (folderId == null) folderId = "root";
 
   // security check
   // prevent using userId in next queries

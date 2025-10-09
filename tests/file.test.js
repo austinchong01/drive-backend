@@ -52,7 +52,7 @@ describe("File", () => {
       .set("Authorization", `Bearer ${authToken}`);
   });
 
-  test("Upload w/o folderId", async () => {
+  test("Upload w/ null folderId", async () => {
     const response = await request(app)
       .post("/files/upload")
       .set("Authorization", `Bearer ${authToken}`)
@@ -61,30 +61,60 @@ describe("File", () => {
         "image",
         path.join(__dirname, "../public/upload_tests/image.jpg")
       ); // Attach the file
-
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty("file");
-    expect(response.body.file.folderId).toBeNull();
+    expect(response.body.file.folderId).toBe("root");
     expect(response.body.file.cloudinaryUrl).toBeDefined();
     expect(response.body.file.size).toBe(1847928);
   });
 
-  // test("Upload w/ folderId", async () => {
-  //   const response = await request(app)
-  //     .post("/files/123/upload")
-  //     .set("Authorization", `Bearer ${authToken}`)
-  //     .field("name", "MyTestFile")
-  //     .attach(
-  //       "image",
-  //       path.join(__dirname, "../public/upload_tests/image.jpg")
-  //     ); // Attach the file
+  let foldId;
+  test("Upload w/ folderId", async () => {
+    const foldRes = await request(app)
+      .post(`/folders/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "testFolder",
+      });
+    foldId = foldRes.body.folder.id;
 
-  //   expect(response.statusCode).toBe(201);
-  //   expect(response.body).toHaveProperty("file");
-  //   expect(response.body.file.folderId).toBe(123);
-  //   expect(response.body.file.cloudinaryUrl).toBeDefined();
-  //   expect(response.body.file.size).toBe(1847928);
-  // });
+    const response = await request(app)
+      .post(`/files/${foldId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .field("name", "MyTestFile")
+      .attach(
+        "image",
+        path.join(__dirname, "../public/upload_tests/image.jpg")
+      );
+
+    expect(response.statusCode).toBe(201);
+    expect(response.body.file.folderId).toBe(foldId);
+  });
+
+  test("Upload w/ same displayName in same folder", async () => {
+    const response = await request(app)
+      .post(`/files/${foldId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .field("name", "MyTestFile")
+      .attach(
+        "image",
+        path.join(__dirname, "../public/upload_tests/image.jpg")
+      );
+    expect(response.statusCode).toBe(409);
+  });
+
+  test("Upload w/ same displayName in same null folder", async () => {
+    const response = await request(app)
+      .post("/files/upload")
+      .set("Authorization", `Bearer ${authToken}`)
+      .field("name", "MyTestFile")
+      .attach(
+        "image",
+        path.join(__dirname, "../public/upload_tests/image.jpg")
+      );
+    console.log(await prisma.file.findMany({ where: { folderId: "root" } }));
+    expect(response.statusCode).toBe(409);
+  });
 
   test("Upload w/o File", async () => {
     const response = await request(app)
@@ -166,6 +196,7 @@ describe("File", () => {
       resource_type: "image",
     });
   });
+
 });
 
 describe("File w/ JWT and uploadedFile", () => {
@@ -303,18 +334,15 @@ describe("File w/o JWT", () => {
   });
 
   test("Upload, storage exceeded", async () => {
-    const testUser = await prisma.user.create({
-      data: {
-        username: "storageTestUser",
-        email: "storagetest@example.com",
-        password: "hashedPasswordHere",
-        storage: 9000000, // 9MB already used
-      },
+    const testUser = await request(app).post("/auth/register").send({
+      username: "test",
+      email: "test@test.com",
+      password: "password123",
     });
     const testAuthToken = jwt.sign(
-      { userId: testUser.id },
+      { userId: testUser.body.user.id },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "60s" }
     );
 
     // Upload 1: Success
@@ -322,7 +350,7 @@ describe("File w/o JWT", () => {
       .post("/files/upload")
       .set("Authorization", `Bearer ${testAuthToken}`)
       .field("name", "FirstFile")
-      .attach("image", Buffer.alloc(500000, "a"), "storage1.jpg"); // 0.5MB
+      .attach("image", Buffer.alloc(5000000, "a"), "storage1.jpg"); // 5MB
 
     expect(response1.statusCode).toBe(201);
     expect(response1.body.file).toBeDefined();
@@ -332,7 +360,7 @@ describe("File w/o JWT", () => {
       .post("/files/upload")
       .set("Authorization", `Bearer ${testAuthToken}`)
       .field("name", "SecondFile")
-      .attach("image", Buffer.alloc(1000000, "c"), "storage2.jpg"); // 1MB
+      .attach("image", Buffer.alloc(5000000, "c"), "storage2.jpg"); // 5MB
 
     expect(response2.statusCode).toBe(400);
     expect(response2.body.error).toBe("BadRequestError");
@@ -340,17 +368,17 @@ describe("File w/o JWT", () => {
 
     // Verify storage did not change
     let userCheck = await prisma.user.findUnique({
-      where: { id: testUser.id },
+      where: { id: testUser.body.user.id },
       select: { storage: true },
     });
-    expect(userCheck.storage).toBe(9500000);
+    expect(userCheck.storage).toBe(5000000);
 
     // Cleanup
     await prisma.file.deleteMany({
-      where: { userId: testUser.id },
+      where: { userId: testUser.body.user.id },
     });
     await prisma.user.delete({
-      where: { id: testUser.id },
+      where: { id: testUser.body.user.id },
     });
   });
 });

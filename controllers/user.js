@@ -9,7 +9,7 @@ async function createUser(req, res) {
   const { username, email, password } = req.body;
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  
+
   const user = await prisma.user.create({
     data: {
       username,
@@ -18,20 +18,30 @@ async function createUser(req, res) {
     },
   });
 
+  // create root folder
+  await prisma.folder.create({
+    data: {
+      id: "root",
+      name: "rootFolder",
+      userId: user.id,
+      parentId: null,
+    },
+  });
+
   // Create JWT token immediately after registration
   const token = jwt.sign(
     { userId: user.id, email: user.email },
     process.env.JWT_SECRET,
-    { expiresIn: '48h' }
+    { expiresIn: "48h" }
   );
 
   return res.status(201).json({
     user: {
       id: user.id,
       username: user.username,
-      email: user.email
+      email: user.email,
     },
-    token // User is logged in immediately
+    token, // User is logged in immediately
   });
 }
 
@@ -70,7 +80,10 @@ async function getUser(req, res, next) {
     },
   });
 
-  if (!foundUser) return next(new NotFoundError(`Database Error: User with id '${userId}' not found`));
+  if (!foundUser)
+    return next(
+      new NotFoundError(`Database Error: User with id '${userId}' not found`)
+    );
 
   return res.json(foundUser.username);
 }
@@ -85,7 +98,10 @@ async function getStorage(req, res, next) {
     },
   });
 
-  if (!foundUser) return next(new NotFoundError(`Database Error: User with id '${userId}' not found`));
+  if (!foundUser)
+    return next(
+      new NotFoundError(`Database Error: User with id '${userId}' not found`)
+    );
 
   return res.json(foundUser.storage);
 }

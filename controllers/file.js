@@ -9,7 +9,8 @@ async function createFile(req, res, next) {
   if (!req.file) return next(new BadRequestError("No file uploaded"));
 
   const userId = req.user.userId;
-  const folderId = req.params.folderId;
+  let folderId = req.params.folderId;
+  if (folderId == null) folderId = "root";
   const maxBytes = 10000000; // 10MB
 
   const checkStorage = await prisma.user.findFirst({
@@ -18,7 +19,7 @@ async function createFile(req, res, next) {
     select: { storage: true },
   });
   if (checkStorage.storage + req.file.size >= maxBytes)
-    next(new BadRequestError("Not enough storage"));
+    return next(new BadRequestError("Not enough storage"));
 
   const base64File = `data:${
     req.file.mimetype
@@ -34,8 +35,8 @@ async function createFile(req, res, next) {
     const [newFile] = await prisma.$transaction([
       prisma.file.create({
         data: {
-          userId: userId,
-          folderId: folderId,
+          userId,
+          folderId,
           originalName: req.file.originalname,
           displayName: req.body.name,
           cloudinaryUrl: result.secure_url,
@@ -111,7 +112,8 @@ async function updateFilename(req, res) {
 async function updateFileLoc(req, res) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
-  const { newFolderId } = req.body;
+  let { newFolderId } = req.body;
+  if (newFolderId == null) newFolderId = "root";
 
   const updatedFile = await prisma.file.update({
     where: { id: fileId, userId },

@@ -61,6 +61,18 @@ describe("Folder w/ JWT", () => {
     folderId = response.body.folder.id;
   });
 
+  test("Create same name folder in root", async () => {
+    const response = await request(app)
+      .post("/folders/upload")
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "testFolderName",
+      });
+    console.log(await prisma.folder.findMany({where: {parentId: "root"}}))
+    expect(response.statusCode).toBe(409);
+  });
+
+
   let testFolderinFolderId;
   test("Create in folder", async () => {
     const response = await request(app)
@@ -157,7 +169,7 @@ describe("Folder w/ JWT", () => {
       where: { id: breadFolderId },
       select: { parentId: true },
     });
-    expect(newFolderParent.parentId).toBeNull();
+    expect(newFolderParent.parentId).toBe("root");
   });
 
   test("Delete a nested Folder", async () => {
