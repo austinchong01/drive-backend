@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const jwt = require("jsonwebtoken");
-const { BadRequestError, NotFoundError } = require("../errors/CustomError");
+const { ConflictError, NotFoundError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
 

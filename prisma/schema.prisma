@@ -42,8 +42,8 @@ model File {
     folder Folder? @relation(fields: [folderId], references: [id], onDelete: Cascade)
 
     @@unique([folderId, displayName])
-    @@index([userId])
-    @@index([folderId])
+    @@index([userId, updatedAt(sort: Desc)])              // Covers [userId] queries too
+    @@index([folderId, userId, updatedAt(sort: Desc)])
     @@map("files")
 }
 
@@ -61,7 +61,7 @@ model Folder {
     files    File[]
 
     @@unique([parentId, name])
-    @@index([userId])
-    @@index([parentId])
+    @@index([userId, updatedAt(sort: Desc)])              // Covers [userId] queries too
+    @@index([parentId, userId, updatedAt(sort: Desc)])
     @@map("folders")
 }

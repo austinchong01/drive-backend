@@ -9,7 +9,6 @@
     "build": "npx prisma generate",
     "migrate": "npx prisma migrate deploy",
     "migrate:dev": "npx prisma migrate dev",
-    "generate": "npx prisma generate",
     "studio": "npx prisma studio",
     "test": "jest"
   },
