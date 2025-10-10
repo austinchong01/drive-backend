@@ -1,11 +1,18 @@
 require("dotenv").config();
 require("express-async-errors");
 const express = require("express");
-const path = require("path");
+const cors = require("cors");
 const prismaErrorHandler = require("./errors/prismaErrorHandler");
 const multerErrorHandler = require("./errors/multerErrorHandler");
 
 const app = express();
+
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 
 // Body parsing middleware
 app.use(express.urlencoded({ extended: false }));
@@ -47,7 +54,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   // console.log(`Frontend URL: ${process.env.FRONTEND_URL}`);
