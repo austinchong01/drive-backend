@@ -110,7 +110,7 @@ describe("User Tests w/ JWT", () => {
       .set("Authorization", `Bearer ${authToken}`);
 
     expect(response.statusCode).toBe(200);
-    expect(response.body.founderUser.storage).toBe(0); // Default storage value from schema
+    expect(response.body.storage).toBe(0); // Default storage value from schema
   });
 });
 
@@ -155,7 +155,7 @@ describe("User Tests w/o JWT", () => {
 
   test("invalid getStorage", async () => {
     const response = await request(app)
-      .get("/storage")
+      .get("/profile")
       .set("Authorization", `Bearer ${fakeToken}`);
 
     expect(response.statusCode).toBe(404);

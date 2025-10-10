@@ -10,7 +10,7 @@
     "migrate": "npx prisma migrate deploy",
     "migrate:dev": "npx prisma migrate dev",
     "studio": "npx prisma studio",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@prisma/client": "^5.6.0",
