@@ -121,7 +121,7 @@ async function updateFolderLoc(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
   if (folderId == null) folderId = "root";
-  let { newParentId } = req.query;
+  let { newParentId } = req.body;
   if (newParentId == null) newParentId = "root";
 
   try {

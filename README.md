@@ -37,8 +37,6 @@ API Endpoints
 
   - GET /profile
     - get all profile information
-  - GET /storage
-    - get storage usage
 
   - PATCH /profile
     - update username
@@ -47,7 +45,7 @@ API Endpoints
     - delete user
 
 - Files
-  - POST /files
+  - POST /files/{folderId}/upload
     - upload file
     - validates storage limit
 
@@ -57,7 +55,7 @@ API Endpoints
   - PATCH /files/{fileId}/updateFileName
     - rename file
   - PATCH /files/{fileId}/updateFileLocation
-    - move file to query newFolderId
+    - move file to newFolderId
 
   - DELETE /files/{fileId}
     - delete file
@@ -72,12 +70,12 @@ API Endpoints
     - sort by folder, file, then uploaded/updated at
     - include pagination for large folders?
   - GET /folders/{folderId}/crumbs
-    - get folder details + breadcrumb path
+    - get folder details + ordered breadcrumb path
     
   - PATCH /folders/{folderId}/newFolderName
     - rename folder
   - PATCH /folders/{folderId}/newFolderLocation
-    - move folder to query parentId
+    - move folder to parentId
 
   - DELETE /folders/{folderId}
     - delete folder, all children folders and files, and update storage

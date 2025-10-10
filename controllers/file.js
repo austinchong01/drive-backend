@@ -120,10 +120,10 @@ async function updateFilename(req, res, next) {
   }
 }
 
-async function updateFileLoc(req, res) {
+async function updateFileLoc(req, res, next) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
-  let { newFolderId } = req.query;
+  let { newFolderId } = req.body;
   if (newFolderId == null) newFolderId = "root";
 
   try {

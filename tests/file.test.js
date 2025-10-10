@@ -1,4 +1,4 @@
-require('dotenv').config(); // ← Add this at the TOP
+require("dotenv").config(); // ← Add this at the TOP
 require("express-async-errors");
 const express = require("express");
 const path = require("path");
@@ -196,7 +196,6 @@ describe("File", () => {
       resource_type: "image",
     });
   });
-
 });
 
 describe("File w/ JWT and uploadedFile", () => {
@@ -249,8 +248,11 @@ describe("File w/ JWT and uploadedFile", () => {
     const newFolderId = folderResponse.body.folder.id;
 
     const response = await request(app)
-      .patch(`/files/${fileId}/updateFileLocation?newFolderId=${newFolderId}`)
+      .patch(`/files/${fileId}/updateFileLocation`)
       .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newFolderId: newFolderId,
+      });
     expect(response.statusCode).toBe(200);
     expect(response.body.folderId).toBe(newFolderId);
   });

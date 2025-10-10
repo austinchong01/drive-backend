@@ -1,4 +1,4 @@
-const { body, validationResult } = require("express-validator");
+const { body, query, validationResult } = require("express-validator");
 const { BadRequestError } = require("../errors/CustomError");
 
 const validateUser = [
@@ -48,9 +48,7 @@ const validateLogin = [
     .withMessage("Must be a valid email address")
     .normalizeEmail(),
 
-  body("password")
-    .notEmpty()
-    .withMessage("Password is required"),
+  body("password").notEmpty().withMessage("Password is required"),
 
   (req, res, next) => {
     const errors = validationResult(req);
@@ -82,5 +80,22 @@ const validateName = [
   },
 ];
 
+const validateSearch = [
+  query("q")
+    .trim()
+    .notEmpty()
+    .withMessage("Search query is required")
+    .isLength({ min: 1, max: 100 })
+    .withMessage("Search query must be between 1 and 100 characters")
+    .escape(),
 
-module.exports = { validateUser, validateLogin, validateName };
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(new BadRequestError(errors.errors[0].msg));
+    }
+    next();
+  },
+];
+
+module.exports = { validateUser, validateLogin, validateName, validateSearch };

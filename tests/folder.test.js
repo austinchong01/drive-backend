@@ -1,4 +1,4 @@
-require('dotenv').config(); // ← Add this at the TOP
+require("dotenv").config(); // ← Add this at the TOP
 require("express-async-errors");
 const express = require("express");
 const request = require("supertest");
@@ -70,7 +70,6 @@ describe("Folder w/ JWT", () => {
       });
     expect(response.statusCode).toBe(409);
   });
-
 
   let testFolderinFolderId;
   test("Create in folder", async () => {
@@ -159,8 +158,12 @@ describe("Folder w/ JWT", () => {
 
   test("Update Location", async () => {
     await request(app)
-      .patch(`/folders/${breadFolderId}/newFolderLocation?newParentId=root`)
+      .patch(`/folders/${breadFolderId}/newFolderLocation`)
       .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newParentId: "root",
+      });
+
     const newFolderParent = await prisma.folder.findUnique({
       where: { id: breadFolderId },
       select: { parentId: true },
