@@ -385,30 +385,28 @@ describe("Rate Limiter", () => {
     // }, 125000); // Increase test timeout to 125 seconds
   });
 
-  // describe("API", () => {
-  //   test("99 success, 1 fail", async () => {
-  //     const file = await request(app)
-  //       .post(`/files/upload`)
-  //       .set("Authorization", `Bearer ${authToken}`)
-  //       .field("name", "COMMON")
-  //       .attach(
-  //         "image",
-  //         path.join(__dirname, "../public/upload_tests/image.jpg")
-  //       );
-  //     const fileId = file.body.file.id;
+  describe("API", () => {
+    test("100 success, 101st fail", async () => {
+      const file = await request(app)
+        .post(`/files/upload`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .field("name", "testFileFolder3")
+        .attach("image", Buffer.alloc(1000, "a"), "testFileFolder3.jpg");
+      const fileId = file.body.file.id;
 
-  //     // 100 requests
-  //     for (let i = 0; i < 100; i++) {
-  //       const response = await request(app)
-  //         .get(`files/${fileId}/download`)
-  //         .set("Authorization", `Bearer ${authToken}`);
-  //       expect(response.status).toBe(200);
-  //     }
-  //     // 101
-  //     const response = await request(app)
-  //       .get("/storage")
-  //       .set("Authorization", `Bearer ${authToken}`);
-  //     expect(response.status).toBe(429);
-  //   });
-  // });
+      // 100 requests
+      for (let i = 0; i < 100; i++) {
+        const response = await request(app)
+          .get(`/files/${fileId}/download`)
+          .set("Authorization", `Bearer ${authToken}`);
+        expect(response.status).toBe(200);
+      }
+
+      // 101st request should be rate limited
+      const response = await request(app)
+        .get(`/files/${fileId}/download`)
+        .set("Authorization", `Bearer ${authToken}`);
+      expect(response.status).toBe(429);
+    });
+  });
 });

@@ -113,9 +113,11 @@ Other
     - email, password
   - validateName
     - name
+- Rate Limiter mw
+  - login limit
+  - api limit
 
 
 misc notes
 
 - server failures?
-- need transactions?

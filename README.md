@@ -94,12 +94,10 @@ Implementation
 - JWT session handling
 - Rate Limiting
 - Performance Optimization
-  - limiting query results
+  - limiting query results?
+    - pagination?
   - transactions
-- pagination?
 - Testing
-- When moving, need to check unique folder/files names
-  - throw Conflict error
 
 Frontend
 - Breadcrumb navigation

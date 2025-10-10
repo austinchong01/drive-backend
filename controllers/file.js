@@ -6,6 +6,7 @@ const { BadRequestError, NotFoundError } = require("../errors/CustomError");
 const prisma = new PrismaClient();
 
 async function createFile(req, res, next) {
+  // check if folder exists?
   if (!req.file) return next(new BadRequestError("No file uploaded"));
 
   const userId = req.user.userId;
@@ -91,22 +92,32 @@ async function download(req, res, next) {
   // res.redirect(downloadUrl); // for DEPLOY?
 }
 
-async function updateFilename(req, res) {
+async function updateFilename(req, res, next) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
   const { name } = req.body;
 
-  const updatedFile = await prisma.file.update({
-    where: { id: fileId, userId },
-    data: {
-      displayName: name,
-    },
-    select: {
-      displayName: true,
-    },
-  });
-
-  return res.json(updatedFile);
+  try {
+    const updatedFile = await prisma.file.update({
+      where: { id: fileId, userId },
+      data: {
+        displayName: name,
+      },
+      select: {
+        displayName: true,
+      },
+    });
+    return res.json(updatedFile);
+  } catch (error) {
+    if (error.code === "P2002") {
+      return next(
+        new ConflictError(
+          "A file with this name already exists in this folder"
+        )
+      );
+    }
+    return next(error);
+  }
 }
 
 async function updateFileLoc(req, res) {
@@ -115,18 +126,28 @@ async function updateFileLoc(req, res) {
   let { newFolderId } = req.query;
   if (newFolderId == null) newFolderId = "root";
 
-  const updatedFile = await prisma.file.update({
-    where: { id: fileId, userId },
-    data: {
-      folderId: newFolderId,
-    },
-    select: {
-      folderId: true,
-      displayName: true,
-    },
-  });
-
-  return res.json(updatedFile);
+  try {
+    const updatedFile = await prisma.file.update({
+      where: { id: fileId, userId },
+      data: {
+        folderId: newFolderId,
+      },
+      select: {
+        folderId: true,
+        displayName: true,
+      },
+    });
+    return res.json(updatedFile);
+  } catch (error) {
+    if (error.code === "P2002") {
+      return next(
+        new ConflictError(
+          "A file with this name already exists in the destination folder"
+        )
+      );
+    }
+    return next(error);
+  }
 }
 
 async function deleteFile(req, res, next) {

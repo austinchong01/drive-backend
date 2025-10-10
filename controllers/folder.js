@@ -91,40 +91,60 @@ async function getBreadCrumbs(req, res, next) {
   });
 }
 
-async function updateFolder(req, res) {
+async function updateFolder(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
   if (folderId == null) folderId = "root";
   const { name } = req.body;
 
-  const updatedFolder = await prisma.folder.update({
-    where: { id: folderId, userId },
-    data: {
-      name,
-    },
-  });
-
-  return res.json(updatedFolder);
+  try {
+    const updatedFolder = await prisma.folder.update({
+      where: { id: folderId, userId },
+      data: {
+        name,
+      },
+    });
+    return res.json(updatedFolder);
+  } catch (error) {
+    if (error.code === "P2002") {
+      return next(
+        new ConflictError(
+          "A folder with this name already exists in the parent folder"
+        )
+      );
+    }
+    return next(error);
+  }
 }
 
-async function updateFolderLoc(req, res) {
+async function updateFolderLoc(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
   if (folderId == null) folderId = "root";
   let { newParentId } = req.query;
   if (newParentId == null) newParentId = "root";
 
-  const updatedFolder = await prisma.folder.update({
-    where: { id: folderId, userId },
-    data: {
-      parentId: newParentId,
-    },
-    select: {
-      name: true,
-    },
-  });
-
-  return res.json(updatedFolder);
+  try {
+    const updatedFolder = await prisma.folder.update({
+      where: { id: folderId, userId },
+      data: {
+        parentId: newParentId,
+      },
+      select: {
+        name: true,
+      },
+    });
+    return res.json(updatedFolder);
+  } catch (error) {
+    if (error.code === "P2002") {
+      return next(
+        new ConflictError(
+          "A folder with this name already exists in the destination folder"
+        )
+      );
+    }
+    return next(error);
+  }
 }
 
 async function deleteFolder(req, res, next) {
