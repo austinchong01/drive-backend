@@ -82,23 +82,6 @@ async function getUser(req, res, next) {
     where: { id: userId },
     select: {
       username: true,
-    },
-  });
-
-  if (!foundUser)
-    return next(
-      new NotFoundError(`Database Error: User with id '${userId}' not found`)
-    );
-
-  return res.json(foundUser.username);
-}
-
-async function getStorage(req, res, next) {
-  const userId = req.user.userId; // JWT
-
-  const foundUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
       storage: true,
     },
   });
@@ -108,7 +91,7 @@ async function getStorage(req, res, next) {
       new NotFoundError(`Database Error: User with id '${userId}' not found`)
     );
 
-  return res.json(foundUser.storage);
+  return res.json(foundUser);
 }
 
 async function updateUsername(req, res) {
@@ -139,7 +122,6 @@ async function deleteUser(req, res) {
 module.exports = {
   createUser,
   getUser,
-  getStorage,
   updateUsername,
   deleteUser,
   login,

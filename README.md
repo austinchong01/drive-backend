@@ -5,8 +5,7 @@ README details here: https://github.com/austinchong01/file-frontend
 Core Functionalities
 
 - User
-  - create and delete
-  - rename username
+  - create/read/rename/delete
   - register/login/logout
     - JWT session management
   - 10MB of storage (MAX)

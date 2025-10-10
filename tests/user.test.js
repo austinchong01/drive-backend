@@ -106,11 +106,11 @@ describe("User Tests w/ JWT", () => {
 
   test("Get storage", async () => {
     const response = await request(app)
-      .get("/storage")
+      .get("/profile")
       .set("Authorization", `Bearer ${authToken}`);
 
     expect(response.statusCode).toBe(200);
-    expect(response.body).toBe(0); // Default storage value from schema
+    expect(response.body.founderUser.storage).toBe(0); // Default storage value from schema
   });
 });
 

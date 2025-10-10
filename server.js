@@ -3,7 +3,7 @@ require("express-async-errors");
 const express = require("express");
 const path = require("path");
 const prismaErrorHandler = require("./errors/prismaErrorHandler");
-const multerErrorHandler = require("./errors/multerErrorHandler")
+const multerErrorHandler = require("./errors/multerErrorHandler");
 
 const app = express();
 
@@ -23,12 +23,8 @@ app.get("/health", (req, res) => {
 // Routes
 app.use("/", require("./routes/userRouter"));
 app.use("/files", require("./routes/fileRouter"));
-app.use('/folders', require('./routes/folderRouter'));
+app.use("/folders", require("./routes/folderRouter"));
 app.use("/api", require("./routes/apiRouter"));
-
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
 
 // error middleware
 app.use((err, req, res, next) => {
