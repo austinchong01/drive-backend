@@ -11,7 +11,6 @@ async function createUser(req, res) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await prisma.$transaction(async (p) => {
-    // Create user
     const newUser = await p.user.create({
       data: {
         username,
@@ -33,7 +32,6 @@ async function createUser(req, res) {
     return newUser;
   });
 
-  // Create JWT token immediately after registration
   const token = jwt.sign(
     { userId: user.id, email: user.email },
     process.env.JWT_SECRET,
@@ -53,12 +51,10 @@ async function createUser(req, res) {
 async function login(req, res, next) {
   const { email, password } = req.body;
 
-  // Find user and verify password
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !(await bcrypt.compare(password, user.password)))
     return next(new UnauthorizedError("Invalid credentials"));
 
-  // Create JWT token
   const token = jwt.sign(
     { userId: user.id, email: user.email },
     process.env.JWT_SECRET,
