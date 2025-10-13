@@ -22,8 +22,7 @@ async function createUser(req, res) {
     // Create root folder
     await p.folder.create({
       data: {
-        id: "root",
-        name: "rootFolder",
+        name: "root",
         userId: newUser.id,
         parentId: null,
       },

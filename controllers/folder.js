@@ -1,13 +1,24 @@
 const { PrismaClient } = require("@prisma/client");
-const jwt = require("jsonwebtoken");
 const { ConflictError, NotFoundError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
 
+// Helper
+async function findFolderId(name, userId) {
+  const rootFolder = await prisma.folder.findFirst({
+    where: {
+      userId,
+      name,
+    },
+    select: { id: true },
+  });
+  return rootFolder.id;
+}
+
 async function createFolder(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == null) folderId = "root";
+  if (folderId == null) folderId = await findFolderId("root", userId);
   const { name } = req.body;
 
   const folder = await prisma.folder.create({
@@ -27,7 +38,7 @@ async function createFolder(req, res, next) {
 async function getContents(req, res) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == null) folderId = "root";
+  if (folderId == null) folderId = await findFolderId("root", userId);
 
   const [subfolders, files] = await prisma.$transaction([
     prisma.folder.findMany({
@@ -59,7 +70,7 @@ async function getContents(req, res) {
 async function getBreadCrumbs(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == null) folderId = "root";
+  if (folderId == null) folderId = await findFolderId("root", userId);
 
   const breadcrumbs = [];
 
@@ -94,7 +105,7 @@ async function getBreadCrumbs(req, res, next) {
 async function updateFolder(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
-  if (folderId == null) folderId = "root";
+  if (folderId == null) folderId = await findFolderId("root", userId);
   const { name } = req.body;
 
   try {
@@ -120,9 +131,9 @@ async function updateFolder(req, res, next) {
 async function updateFolderLoc(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
-  if (folderId == null) folderId = "root";
+  if (folderId == null) folderId = await findFolderId("root", userId);
   let { newParentId } = req.body;
-  if (newParentId == null) newParentId = "root";
+  if (newParentId == null) newParentId = await findFolderId("root", userId);
 
   try {
     const updatedFolder = await prisma.folder.update({
@@ -150,7 +161,7 @@ async function updateFolderLoc(req, res, next) {
 async function deleteFolder(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
-  if (folderId == null) folderId = "root";
+  if (folderId == null) folderId = await findFolderId("root", userId);
 
   // security check
   // prevent using userId in next queries

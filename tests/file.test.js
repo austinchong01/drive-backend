@@ -64,7 +64,6 @@ describe("File", () => {
       );
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty("file");
-    expect(response.body.file.folderId).toBe("root");
     expect(response.body.file.cloudinaryUrl).toBeDefined();
     expect(response.body.file.size).toBe(1847928);
   });

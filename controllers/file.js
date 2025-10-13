@@ -1,9 +1,20 @@
 const { PrismaClient } = require("@prisma/client");
-const jwt = require("jsonwebtoken");
 const cloudinary = require("../config/cloudinary");
 const { BadRequestError, NotFoundError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
+
+// Helper
+async function findFolderId(name, userId) {
+  const rootFolder = await prisma.folder.findFirst({
+    where: {
+      userId,
+      name,
+    },
+    select: { id: true },
+  });
+  return rootFolder.id;
+}
 
 async function createFile(req, res, next) {
   // check if folder exists?
@@ -11,7 +22,7 @@ async function createFile(req, res, next) {
 
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == null) folderId = "root";
+  if (folderId == null) folderId = await findFolderId("root", userId);
   const maxBytes = 10000000; // 10MB
 
   const checkStorage = await prisma.user.findFirst({
@@ -111,9 +122,7 @@ async function updateFilename(req, res, next) {
   } catch (error) {
     if (error.code === "P2002") {
       return next(
-        new ConflictError(
-          "A file with this name already exists in this folder"
-        )
+        new ConflictError("A file with this name already exists in this folder")
       );
     }
     return next(error);
@@ -124,7 +133,7 @@ async function updateFileLoc(req, res, next) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
   let { newFolderId } = req.body;
-  if (newFolderId == null) newFolderId = "root";
+  if (newFolderId == null) newFolderId = await findFolderId("root", userId);
 
   try {
     const updatedFile = await prisma.file.update({

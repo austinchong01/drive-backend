@@ -161,14 +161,22 @@ describe("Folder w/ JWT", () => {
       .patch(`/folders/${breadFolderId}/newFolderLocation`)
       .set("Authorization", `Bearer ${authToken}`)
       .send({
-        newParentId: "root",
+        newParentId: null,
       });
 
     const newFolderParent = await prisma.folder.findUnique({
       where: { id: breadFolderId },
       select: { parentId: true },
     });
-    expect(newFolderParent.parentId).toBe("root");
+    const rootFolder = await prisma.folder.findFirst({
+      where: {
+        userId: jwt.decode(authToken).userId,
+        name: "root",
+      },
+      select: { id: true },
+    });
+
+    expect(newFolderParent.parentId).toBe(rootFolder.id);
   });
 
   test("Delete a nested Folder", async () => {
