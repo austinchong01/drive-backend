@@ -322,9 +322,9 @@ describe("Rate Limiter", () => {
   });
 
   describe("Login", () => {
-    test("3 failed, 1 success, 2 failed, 6th blocked", async () => {
+    test("5 failed, 1 success, 2 failed, 8th blocked", async () => {
       // Make 3 failed attempts
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 5; i++) {
         await request(app).post("/auth/login").send({
           email: "logintest@example.com",
           password: "wrongpassword",
