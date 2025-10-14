@@ -63,11 +63,9 @@ async function login(req, res, next) {
   res.json({ token });
 }
 
-async function logout(req, res, next) {
-  // With JWT, logout is handled client-side by removing the token
-  // Server doesn't need to do anything since JWTs are stateless
-
-  res.json({ message: "Logged out successfully" });
+async function verify(req, res, next) {
+  // JWT middleware check
+  return res.json({});
 }
 
 async function getUser(req, res, next) {
@@ -117,8 +115,8 @@ async function deleteUser(req, res) {
 module.exports = {
   createUser,
   getUser,
+  verify,
   updateUsername,
   deleteUser,
   login,
-  logout,
 };

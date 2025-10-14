@@ -7,7 +7,7 @@ const limiter = require("../middleware/ratelimiter");
 
 router.post("/auth/register", val.validateUser, user.createUser);
 router.post("/auth/login", limiter.login, val.validateLogin, user.login);
-router.post("/auth/logout", authenticateToken, user.logout);
+router.get("/auth/verify", authenticateToken, user.verify);
 
 router.get("/profile", authenticateToken, user.getUser);
 
