@@ -33,7 +33,7 @@ describe("User Register/Delete", () => {
   test("Register", async () => {
     const response = await request(app).post("/auth/register").send({
       username: "test",
-      email: "test@test.com",
+      email: "USERTEST@test.com",
       password: "password123",
     });
 
@@ -46,7 +46,7 @@ describe("User Register/Delete", () => {
   test("Email in use", async () => {
     const response = await request(app).post("/auth/register").send({
       username: "test",
-      email: "test@test.com",
+      email: "USERTEST@test.com",
       password: "password123",
     });
     expect(response.statusCode).toBe(409);

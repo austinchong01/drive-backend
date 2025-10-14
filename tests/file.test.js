@@ -334,7 +334,7 @@ describe("File w/o JWT", () => {
   test("Upload, storage exceeded", async () => {
     const testUser = await request(app).post("/auth/register").send({
       username: "test",
-      email: "test@test.com",
+      email: "TESTUSER@test.com",
       password: "password123",
     });
     const testAuthToken = jwt.sign(
