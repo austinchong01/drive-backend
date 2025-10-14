@@ -8,7 +8,7 @@ async function findFolderId(name, userId) {
   const rootFolder = await prisma.folder.findFirst({
     where: {
       userId,
-      name,
+      name: name,
     },
     select: { id: true },
   });
@@ -38,7 +38,7 @@ async function createFolder(req, res, next) {
 async function getContents(req, res) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == null) folderId = await findFolderId("root", userId);
+  if (folderId == "null") folderId = await findFolderId("root", userId);
 
   const [subfolders, files] = await prisma.$transaction([
     prisma.folder.findMany({
