@@ -69,6 +69,7 @@ async function verify(req, res, next) {
 }
 
 async function getUser(req, res, next) {
+  // throw new Error('Simulated 500 error');
   const userId = req.user.userId; // JWT
 
   const foundUser = await prisma.user.findUnique({

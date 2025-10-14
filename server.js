@@ -42,8 +42,8 @@ app.use((err, req, res, next) => {
     console.log("Status 500 Error");
     return res.status(500).json({
       error: "InternalServerError",
-      message: err.message, // FOR DEVELOPMENT
-      // message: 'An unexpected error occurred'    // FOR DEPLOYMENT
+      // message: err.message, // FOR DEVELOPMENT
+      message: 'Status 500: An unexpected error occurred'    // FOR DEPLOYMENT
     });
   }
 
