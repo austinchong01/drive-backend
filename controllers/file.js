@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const cloudinary = require("../config/cloudinary");
-const { BadRequestError, NotFoundError } = require("../errors/CustomError");
+const { BadRequestError, NotFoundError, ConflictError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
 
@@ -76,31 +76,6 @@ async function createFile(req, res, next) {
 
     return next(dbError);
   }
-}
-
-async function download(req, res, next) {
-  const userId = req.user.userId; // JWT
-  const { fileId } = req.params;
-
-  const file = await prisma.file.findUnique({
-    where: { id: fileId, userId },
-    select: { cloudinaryUrl: true, displayName: true },
-  });
-
-  if (!file)
-    return next(
-      new NotFoundError(
-        `Database Error: File with id '${fileId}' not found in User's files`
-      )
-    );
-
-  const downloadUrl = file.cloudinaryUrl.replace(
-    "/upload/",
-    `/upload/fl_attachment:${encodeURIComponent(file.displayName)}/`
-  );
-
-  res.json(downloadUrl);
-  // res.redirect(downloadUrl); // for DEPLOY?
 }
 
 async function updateFilename(req, res, next) {
@@ -193,7 +168,6 @@ async function deleteFile(req, res, next) {
 
 module.exports = {
   createFile,
-  download,
   updateFilename,
   updateFileLoc,
   deleteFile,
