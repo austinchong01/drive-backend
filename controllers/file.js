@@ -22,7 +22,7 @@ async function createFile(req, res, next) {
 
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == null) folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId);
   const maxBytes = 10000000; // 10MB
 
   const checkStorage = await prisma.user.findFirst({
@@ -108,7 +108,7 @@ async function updateFileLoc(req, res, next) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
   let { newFolderId } = req.body;
-  if (newFolderId == null) newFolderId = await findFolderId("root", userId);
+  if (!newFolderId) newFolderId = await findFolderId("root", userId);
 
   try {
     const updatedFile = await prisma.file.update({

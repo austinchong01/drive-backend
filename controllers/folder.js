@@ -130,9 +130,9 @@ async function updateFolder(req, res, next) {
 async function updateFolderLoc(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
-  if (folderId == null) folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId);
   let { newParentId } = req.body;
-  if (newParentId == null) newParentId = await findFolderId("root", userId);
+  if (!newParentId) newParentId = await findFolderId("root", userId);
 
   try {
     const updatedFolder = await prisma.folder.update({
