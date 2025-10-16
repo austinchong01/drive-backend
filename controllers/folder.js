@@ -68,6 +68,7 @@ async function getContents(req, res) {
 }
 
 async function getBreadCrumbs(req, res, next) {
+  console.log("reached backend")
   const userId = req.user.userId;
   let folderId = req.params.folderId;
   if (folderId == null) folderId = await findFolderId("root", userId);
