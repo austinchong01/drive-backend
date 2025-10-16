@@ -18,8 +18,7 @@ async function findFolderId(name, userId) {
 async function createFolder(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  console.log(folderId)
-  if (folderId == null) folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId);
   const { name } = req.body;
 
   const folder = await prisma.folder.create({
@@ -39,7 +38,7 @@ async function createFolder(req, res, next) {
 async function getContents(req, res) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == "null") folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId);
 
   const [subfolders, files] = await prisma.$transaction([
     prisma.folder.findMany({
@@ -71,7 +70,7 @@ async function getContents(req, res) {
 async function getBreadCrumbs(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == "null") folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId);
 
   const breadcrumbs = [];
 
@@ -106,7 +105,6 @@ async function getBreadCrumbs(req, res, next) {
 async function updateFolder(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
-  if (folderId == null) folderId = await findFolderId("root", userId);
   const { name } = req.body;
 
   try {
@@ -162,7 +160,6 @@ async function updateFolderLoc(req, res, next) {
 async function deleteFolder(req, res, next) {
   const userId = req.user.userId; // JWT
   let { folderId } = req.params;
-  if (folderId == null) folderId = await findFolderId("root", userId);
 
   // security check
   // prevent using userId in next queries
