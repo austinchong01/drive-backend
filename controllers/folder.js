@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const cloudinary = require("../config/cloudinary");
 const { ConflictError, NotFoundError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
@@ -172,9 +173,9 @@ async function deleteFolder(req, res, next) {
   if (!folder)
     return next(new NotFoundError("Folder not found or access denied"));
 
-  // get all folderIds within folderId
   const foldersToCheck = [folderId];
   const allFolderIds = [];
+  const allFileIds = [];
 
   while (foldersToCheck.length !== 0) {
     const currFolder = foldersToCheck.pop();
@@ -189,7 +190,25 @@ async function deleteFolder(req, res, next) {
       },
     });
 
+    const subFiles = await prisma.file.findMany({
+      where: {
+        folderId: currFolder,
+      },
+      select: {
+        cloudinaryPublicId: true,
+        cloudinaryResourceType: true
+      },
+    });
+
+    allFileIds.push(...subFiles);
     foldersToCheck.push(...subfolders.map((sf) => sf.id));
+  }
+
+  // need to remove all files found from cloudinary
+  for (let i = 0; i < allFileIds.length; i++) {
+    await cloudinary.uploader.destroy(allFileIds[i].cloudinaryPublicId, {
+      resource_type: allFileIds[i].cloudinaryResourceType,
+    });
   }
 
   await prisma.$transaction(async (p) => {

@@ -22,6 +22,7 @@ app.use((err, req, res, next) => {
 
   if (!err.statusCode || err.statusCode >= 500) {
     console.log("Status 500 Error");
+    console.log(err.message)
     return res.status(500).json({
       error: "InternalServerError",
       message: err.message,
