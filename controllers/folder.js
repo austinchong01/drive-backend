@@ -18,6 +18,7 @@ async function findFolderId(name, userId) {
 async function createFolder(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
+  console.log(folderId)
   if (folderId == null) folderId = await findFolderId("root", userId);
   const { name } = req.body;
 
@@ -70,7 +71,7 @@ async function getContents(req, res) {
 async function getBreadCrumbs(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (folderId == null) folderId = await findFolderId("root", userId);
+  if (folderId == "null") folderId = await findFolderId("root", userId);
 
   const breadcrumbs = [];
 
