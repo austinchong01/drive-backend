@@ -7,9 +7,9 @@ const authenticateToken = require("../config/jwt");
 
 router.post("/:folderId?/upload", authenticateToken, upload.single("image"), val.validateName, file.createFile);
 
-router.patch("/:fileId/updateFileName", authenticateToken, val.validateName, file.updateFilename);
-router.patch("/:fileId/updateFileLocation", authenticateToken, file.updateFileLoc);
+router.patch("/:fileId?/updateFileName", authenticateToken, val.validateName, file.updateFilename);
+router.patch("/:fileId?/updateFileLocation", authenticateToken, file.updateFileLoc);
 
-router.delete("/:fileId", authenticateToken, file.deleteFile);
+router.delete("/:fileId?", authenticateToken, file.deleteFile);
 
 module.exports = router;
