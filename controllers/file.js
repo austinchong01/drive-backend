@@ -1,6 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
 const cloudinary = require("../config/cloudinary");
-const { BadRequestError, NotFoundError, ConflictError } = require("../errors/CustomError");
+const {
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+} = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
 
@@ -107,17 +111,27 @@ async function updateFilename(req, res, next) {
 async function updateFileLoc(req, res, next) {
   const userId = req.user.userId; // JWT
   const { fileId } = req.params;
-  let { newFolderId } = req.body;
-  if (!newFolderId) newFolderId = await findFolderId("root", userId);
+  let { newParentId } = req.body;
+  if (!newParentId) newParentId = await findFolderId("root", userId);
 
   try {
+    // Check if already in the target location
+    const currentFolder = await prisma.file.findUnique({
+      where: { id: fileId },
+      select: { folderId: true, displayName: true },
+    });
+    if (currentFolder.folderId === newParentId)
+      return res.json({
+        name: currentFolder.displayName,
+        message: "File already present",
+      });
+
     const updatedFile = await prisma.file.update({
       where: { id: fileId, userId },
       data: {
-        folderId: newFolderId,
+        folderId: newParentId,
       },
       select: {
-        folderId: true,
         displayName: true,
       },
     });

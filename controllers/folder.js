@@ -135,7 +135,40 @@ async function updateFolderLoc(req, res, next) {
   let { newParentId } = req.body;
   if (!newParentId) newParentId = await findFolderId("root", userId);
 
+  // HELPER FUNCTION (recursion)
+  // is child a descendant of ancestor
+  async function isDescendant(childId, ancestorId) {
+    if (!childId) return false; // Reached parent folder of root
+    if (childId === ancestorId) return true;
+
+    const folder = await prisma.folder.findUnique({
+      where: { id: childId },
+      select: { parentId: true },
+    });
+
+    if (!folder) return false; // check if parent folder exists?
+    return isDescendant(folder.parentId, ancestorId);
+  }
+
   try {
+    // Check if already in the target location
+    const currentFolder = await prisma.folder.findUnique({
+      where: { id: folderId },
+      select: { parentId: true, name: true },
+    });
+    if (currentFolder.parentId === newParentId)
+      return res.json({
+        name: currentFolder.name,
+        message: "Folder already present",
+      });
+
+    // check if newParentId is descendant of folderId
+    const checkDescendant = await isDescendant(newParentId, folderId);
+    if (checkDescendant)
+      return next(
+        new ConflictError("Cannot move a folder into its own descendant")
+      );
+
     const updatedFolder = await prisma.folder.update({
       where: { id: folderId, userId },
       data: {
@@ -196,7 +229,7 @@ async function deleteFolder(req, res, next) {
       },
       select: {
         cloudinaryPublicId: true,
-        cloudinaryResourceType: true
+        cloudinaryResourceType: true,
       },
     });
 
