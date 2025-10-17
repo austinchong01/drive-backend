@@ -22,7 +22,7 @@ app.use((err, req, res, next) => {
 
   if (!err.statusCode || err.statusCode >= 500) {
     console.log("Status 500 Error");
-    console.log(err.message)
+    console.log(err.message);
     return res.status(500).json({
       error: "InternalServerError",
       message: err.message,
@@ -149,7 +149,7 @@ describe("Folder w/ JWT", () => {
 
   test("Update Name", async () => {
     const newName = await request(app)
-      .patch(`/folders/${breadFolderId}/newFolderName`)
+      .patch(`/folders/${breadFolderId}/updateFolderName`)
       .set("Authorization", `Bearer ${authToken}`)
       .send({
         name: "updatedFolderName",
@@ -159,7 +159,7 @@ describe("Folder w/ JWT", () => {
 
   test("Update Location", async () => {
     await request(app)
-      .patch(`/folders/${breadFolderId}/newFolderLocation`)
+      .patch(`/folders/${breadFolderId}/updateFolderLocation`)
       .set("Authorization", `Bearer ${authToken}`)
       .send({
         newParentId: null,
@@ -208,5 +208,101 @@ describe("Folder w/ JWT", () => {
     const foundFiles = await prisma.file.findMany({ where: { folderId } });
     expect(foundFolders).toHaveLength(0);
     expect(foundFiles).toHaveLength(0);
+  });
+});
+
+describe("Drag and Drop Folder", () => {
+  let authToken;
+  let grandParentFolderId;
+  let parentFolderId;
+  let childFolderId;
+  let childFolder2Id;
+  let conflictingFolderNameId;
+  beforeAll(async () => {
+    const response = await request(app).post("/auth/register").send({
+      username: "loginTestUser",
+      email: "logintest@example.com",
+      password: "pass123",
+    });
+    authToken = response.body.token;
+    const grandParentFolder = await request(app)
+      .post("/folders/upload")
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "grandParentFolder",
+      });
+    grandParentFolderId = grandParentFolder.body.folder.id;
+    const parentFolder = await request(app)
+      .post(`/folders/${grandParentFolderId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "parentFolder",
+      });
+    parentFolderId = parentFolder.body.folder.id;
+    const childFolder = await request(app)
+      .post(`/folders/${parentFolderId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "childFolder",
+      });
+    childFolderId = childFolder.body.folder.id;
+    const childFolder2 = await request(app)
+      .post(`/folders/${parentFolderId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "childFolder2",
+      });
+    childFolder2Id = childFolder2.body.folder.id;
+    const conflictFolder = await request(app)
+      .post(`/folders/${grandParentFolderId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "childFolder",
+      });
+    conflictingFolderNameId = conflictFolder.body.folder.id;
+  });
+  afterAll(async () => {
+    await request(app)
+      .delete("/profile/")
+      .set("Authorization", `Bearer ${authToken}`);
+  });
+
+  test("Existing Parent Folder", async () => {
+    const response = await request(app)
+      .patch(`/folders/${childFolder2Id}/updateFolderLocation`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newParentId: parentFolderId,
+      });
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("Folder already present");
+  });
+
+  test("Conflicting Folder name, from parent folder to child folder", async () => {
+    const response = await request(app)
+      .patch(`/folders/${conflictingFolderNameId}/updateFolderLocation`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newParentId: parentFolderId,
+      });
+    expect(response.status).toBe(409);
+    expect(response.body.error).toBe("ConflictError");
+    expect(response.body.message).toBe(
+      "A folder with this name already exists in the destination folder"
+    );
+  });
+
+  test("Descendant Check", async () => {
+    const response = await request(app)
+      .patch(`/folders/${grandParentFolderId}/updateFolderLocation`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newParentId: childFolderId,
+      });
+    expect(response.status).toBe(409);
+    expect(response.body.error).toBe("ConflictError");
+    expect(response.body.message).toBe(
+      "Cannot move a folder into its own descendant"
+    );
   });
 });

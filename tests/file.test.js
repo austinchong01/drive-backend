@@ -36,6 +36,82 @@ app.use((err, req, res, next) => {
   });
 });
 
+describe("Drag and Drop File", () => {
+  let authToken;
+  let parentFolderId;
+  let childFolderId;
+  let fileId;
+  let conflictingFileId;
+  beforeAll(async () => {
+    const response = await request(app).post("/auth/register").send({
+      username: "loginTestUser",
+      email: "logintest@example.com",
+      password: "pass123",
+    });
+    authToken = response.body.token;
+    const parentFolder = await request(app)
+      .post(`/folders/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "parentFolder",
+      });
+    parentFolderId = parentFolder.body.folder.id;
+    const childFolder = await request(app)
+      .post(`/folders/${parentFolderId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        name: "childFolder",
+      });
+    childFolderId = childFolder.body.folder.id;
+
+    const file = await request(app)
+      .post(`/files/${parentFolderId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .field("name", "file")
+      .attach("image", Buffer.from("file1content"), "storage1.jpg");
+    fileId = file.body.file.id;
+
+    const conflictFile = await request(app)
+      .post(`/files/${childFolderId}/upload`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .field("name", "file")
+      .attach("image", Buffer.from("file2content"), "storage2.jpg");
+    conflictingFileId = conflictFile.body.file.id;
+  });
+
+  afterAll(async () => {
+    await request(app)
+      .delete("/profile/")
+      .set("Authorization", `Bearer ${authToken}`);
+  });
+
+  test("Existing Parent Folder", async () => {
+    const response = await request(app)
+      .patch(`/files/${fileId}/updateFileLocation`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newParentId: parentFolderId,
+      });
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("File already present");
+  });
+
+  test("Conflicting File name", async () => {
+    const response = await request(app)
+      .patch(`/files/${conflictingFileId}/updateFileLocation`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        newParentId: parentFolderId,
+      });
+    expect(response.status).toBe(409);
+    expect(response.body.error).toBe("ConflictError");
+    expect(response.body.message).toBe(
+      "A file with this name already exists in the destination folder"
+    );
+  });
+
+});
+
 describe("File", () => {
   let authToken;
   beforeAll(async () => {
@@ -250,10 +326,10 @@ describe("File w/ JWT and uploadedFile", () => {
       .patch(`/files/${fileId}/updateFileLocation`)
       .set("Authorization", `Bearer ${authToken}`)
       .send({
-        newFolderId: newFolderId,
+        newParentId: newFolderId,
       });
     expect(response.statusCode).toBe(200);
-    expect(response.body.folderId).toBe(newFolderId);
+    expect(response.body.displayName).toBe("updatedFilename");
   });
 
   test("File should remain in DB when Cloudinary delete fails", async () => {

@@ -58,7 +58,6 @@ Files
     - BadRequestError
   - cloudinary error
     - not in database
-- GET Download
 - PATCH Filename
   - valid fields
     - validate new filename
@@ -67,6 +66,8 @@ Files
     - validate new location from newFolderId
   - invalid folderId
     - NotFoundError
+  - file into its own folder
+  - conflicting file name
 - Delete
   - valid fields
     - all files/folders deleted in DB and Cloudinary
@@ -91,6 +92,9 @@ Folders
     - validate return value has new name
 - PATCH Update Folder Location
   - validate moved folder has new parentId
+  - folder into its own parent folder
+  - conflicting folder name
+  - descendant check
 - DELETE Folder
   - nested folders and nested files
   - check storage
@@ -115,7 +119,7 @@ Other
     - name
 - Rate Limiter mw
   - login limit
-  - api limit
+  - api limit?
 
 
 misc notes

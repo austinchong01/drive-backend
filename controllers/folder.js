@@ -156,6 +156,7 @@ async function updateFolderLoc(req, res, next) {
       where: { id: folderId },
       select: { parentId: true, name: true },
     });
+    // console.log(currentFolder.parentId)
     if (currentFolder.parentId === newParentId)
       return res.json({
         name: currentFolder.name,
