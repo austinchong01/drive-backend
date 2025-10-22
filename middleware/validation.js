@@ -65,9 +65,9 @@ const validateName = [
     .withMessage("Name is required")
     .isLength({ min: 1, max: 30 })
     .withMessage("Name must be between 1 and 30 characters")
-    .matches(/^[a-zA-Z0-9_.-]+$/)
+    .matches(/^[a-zA-Z0-9_-]+$/)
     .withMessage(
-      "Name can only contain letters, numbers, underscores, hyphens, and periods"
+      "Name can only contain letters, numbers, underscores, and hyphens"
     )
     .escape(),
 
