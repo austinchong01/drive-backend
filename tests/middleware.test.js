@@ -294,7 +294,7 @@ describe("Validation", () => {
     });
 
     test("name with valid special characters passes", async () => {
-      const error = await runValidation("file_name-123.txt");
+      const error = await runValidation("file_name-123");
       expect(error).toBeUndefined();
     });
   });

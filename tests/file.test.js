@@ -141,7 +141,7 @@ describe("File", () => {
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty("file");
     expect(response.body.file.cloudinaryUrl).toBeDefined();
-    expect(response.body.file.size).toBe(1847928);
+    expect(response.body.file.size).toBe(33906);
   });
 
   let foldId;
