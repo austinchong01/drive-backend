@@ -1,5 +1,3 @@
-// errors/CustomError.js
-
 // Client Errors (User's Fault)
 
 // 400 Bad Request

@@ -1,4 +1,3 @@
-// errors/prismaErrorHandler.js
 const {
     BadRequestError,
     NotFoundError,
@@ -6,9 +5,9 @@ const {
   } = require("./CustomError");
   
   function handlePrismaError(err) {
-    // Check if it's a Prisma error
+    // Check if Prisma error
     if (!err.code || !/^P\d{4}$/.test(err.code)) {
-      return err; // Not a Prisma error, return unchanged
+      return err;
     }
   
     // P2002 - Unique constraint violation
@@ -17,12 +16,12 @@ const {
       return new ConflictError(`${field} already exists`);
     }
   
-    // P2025 - Record not found (for update/delete operations)
+    // P2025 - Record not found
     if (err.code === "P2025") {
       return new NotFoundError("Record not found");
     }
   
-    // P2001 - Record does not exist (for nested operations)
+    // P2001 - Record does not exist
     if (err.code === "P2001") {
       return new NotFoundError("Related record does not exist");
     }
@@ -45,7 +44,7 @@ const {
       return new BadRequestError(`Missing required field: ${field}`);
     }
   
-    // P2014 - Relation violation (required relation missing)
+    // P2014 - Relation violation
     if (err.code === "P2014") {
       return new BadRequestError("Required relation is missing");
     }

@@ -1,6 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+/**
+ * Search for folders and files by name
+ * Returns results ordered by most recently updated
+ */
 async function search(req, res) {
   const userId = req.user.userId;
   const { q } = req.query;

@@ -5,11 +5,16 @@ const jwt = require("jsonwebtoken");
 
 const prisma = new PrismaClient();
 
+/**
+ * Register new user and create root folder
+ * Returns JWT token for immediate login
+ */
 async function createUser(req, res) {
   const { username, email, password } = req.body;
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // Create user and root folder in transaction
   const user = await prisma.$transaction(async (p) => {
     const newUser = await p.user.create({
       data: {
@@ -43,10 +48,14 @@ async function createUser(req, res) {
       username: user.username,
       email: user.email,
     },
-    token, // User is logged in immediately
+    token,
   });
 }
 
+/**
+ * Authenticate user with email and password
+ * Returns JWT token on success
+ */
 async function login(req, res, next) {
   const { email, password } = req.body;
 
@@ -63,14 +72,19 @@ async function login(req, res, next) {
   res.json({ token });
 }
 
+/**
+ * Verify JWT token validity
+ * Token verification handled by middleware
+ */
 async function verify(req, res, next) {
-  // JWT middleware check
   return res.json({});
 }
 
+/**
+ * Get user profile (username and storage usage)
+ */
 async function getUser(req, res, next) {
-  // throw new Error('Simulated 500 error');
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
 
   const foundUser = await prisma.user.findUnique({
     where: { id: userId },
@@ -88,8 +102,11 @@ async function getUser(req, res, next) {
   return res.json(foundUser);
 }
 
+/**
+ * Update username
+ */
 async function updateUsername(req, res) {
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
   const { name } = req.body;
 
   const updatedUser = await prisma.user.update({
@@ -105,8 +122,12 @@ async function updateUsername(req, res) {
   return res.json(updatedUser.username);
 }
 
+/**
+ * Delete user account
+ * Cascades to all folders and files
+ */
 async function deleteUser(req, res) {
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
 
   await prisma.user.delete({ where: { id: userId } });
 

@@ -4,7 +4,10 @@ const { ConflictError, NotFoundError } = require("../errors/CustomError");
 
 const prisma = new PrismaClient();
 
-// Helper
+/**
+ * (HELPER FUNCTION)
+ * Finds folder ID by name
+ */
 async function findFolderId(name, userId) {
   const rootFolder = await prisma.folder.findFirst({
     where: {
@@ -16,10 +19,14 @@ async function findFolderId(name, userId) {
   return rootFolder.id;
 }
 
+/**
+ * Create new folder
+ * Validates duplicate names within parent folder
+ */
 async function createFolder(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (!folderId) folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId); // "undefined" is "root" folder
   const { name } = req.body;
 
   const folder = await prisma.folder.create({
@@ -36,11 +43,16 @@ async function createFolder(req, res, next) {
   });
 }
 
+/**
+ * Get folder contents (subfolders and files)
+ * Returns contents ordered by most recently updated
+ */
 async function getContents(req, res) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (!folderId) folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId); // "undefined" is "root" folder
 
+  // Query subfolders and files in transaction
   const [subfolders, files] = await prisma.$transaction([
     prisma.folder.findMany({
       where: {
@@ -68,13 +80,18 @@ async function getContents(req, res) {
   });
 }
 
+/**
+ * Get breadcrumb navigation path
+ * Traverses from current folder up to root
+ */
 async function getBreadCrumbs(req, res, next) {
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (!folderId) folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId); // "undefined" is "root" folder
 
   const breadcrumbs = [];
 
+  // Traverse to "root"
   while (folderId !== null) {
     const folder = await prisma.folder.findFirst({
       where: {
@@ -103,8 +120,12 @@ async function getBreadCrumbs(req, res, next) {
   });
 }
 
+/**
+ * Update folder name
+ * Validates duplicate names within same parent folder
+ */
 async function updateFolder(req, res, next) {
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
   let { folderId } = req.params;
   const { name } = req.body;
 
@@ -128,15 +149,21 @@ async function updateFolder(req, res, next) {
   }
 }
 
+/**
+ * Move folder to different parent folder
+ * Validates duplicate names, same location, and prevents circular nesting
+ */
 async function updateFolderLoc(req, res, next) {
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
   let { folderId } = req.params;
-  if (!folderId) folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId); // "undefined" is "root" folder
   let { newParentId } = req.body;
-  if (!newParentId) newParentId = await findFolderId("root", userId);
+  if (!newParentId) newParentId = await findFolderId("root", userId); // "undefined" is "root" folder
 
-  // HELPER FUNCTION (recursion)
-  // is child a descendant of ancestor
+  /**
+   * (HELPER FUNCTION - recursion)
+   * Check if child is a descendant of ancestor
+   */
   async function isDescendant(childId, ancestorId) {
     if (!childId) return false; // Reached parent folder of root
     if (childId === ancestorId) return true;
@@ -146,7 +173,7 @@ async function updateFolderLoc(req, res, next) {
       select: { parentId: true },
     });
 
-    if (!folder) return false; // check if parent folder exists?
+    if (!folder) return false;
     return isDescendant(folder.parentId, ancestorId);
   }
 
@@ -156,14 +183,13 @@ async function updateFolderLoc(req, res, next) {
       where: { id: folderId },
       select: { parentId: true, name: true },
     });
-    // console.log(currentFolder.parentId)
     if (currentFolder.parentId === newParentId)
       return res.json({
         name: currentFolder.name,
         message: "Folder already present",
       });
 
-    // check if newParentId is descendant of folderId
+    // Prevent moving folder into its own descendant (circular nesting)
     const checkDescendant = await isDescendant(newParentId, folderId);
     if (checkDescendant)
       return next(
@@ -192,12 +218,15 @@ async function updateFolderLoc(req, res, next) {
   }
 }
 
+/**
+ * Delete folder and all nested contents
+ * Removes files from Cloudinary and updates user storage
+ */
 async function deleteFolder(req, res, next) {
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
   let { folderId } = req.params;
 
-  // security check
-  // prevent using userId in next queries
+  // Verify user ownership
   const folder = await prisma.folder.findFirst({
     where: {
       id: folderId,
@@ -211,6 +240,7 @@ async function deleteFolder(req, res, next) {
   const allFolderIds = [];
   const allFileIds = [];
 
+  // Traverse all nested folders and store IDs
   while (foldersToCheck.length !== 0) {
     const currFolder = foldersToCheck.pop();
     allFolderIds.push(currFolder);
@@ -238,15 +268,16 @@ async function deleteFolder(req, res, next) {
     foldersToCheck.push(...subfolders.map((sf) => sf.id));
   }
 
-  // need to remove all files found from cloudinary
+  // Remove all nested files from Cloudinary
   for (let i = 0; i < allFileIds.length; i++) {
     await cloudinary.uploader.destroy(allFileIds[i].cloudinaryPublicId, {
       resource_type: allFileIds[i].cloudinaryResourceType,
     });
   }
 
+  // Delete folder and update storage in transaction
   await prisma.$transaction(async (p) => {
-    // Single aggregate for ALL files
+    // Calculate total storage to free
     const totalStorage = await p.file.aggregate({
       where: {
         folderId: { in: allFolderIds },
@@ -255,14 +286,12 @@ async function deleteFolder(req, res, next) {
     });
     const storageToFree = totalStorage._sum.size || 0;
 
-    // delete all files and folders in folderId
     await p.folder.delete({
       where: {
         id: folderId,
       },
     });
 
-    // update User storage
     await p.user.update({
       where: { id: userId },
       data: { storage: { decrement: storageToFree } },

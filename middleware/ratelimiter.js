@@ -1,6 +1,7 @@
 const rateLimit = require("express-rate-limit");
 const { TooManyRequestsError } = require("../errors/CustomError");
 
+// Login Rate Limiter
 const login = rateLimit({
   windowMs: 2 * 60 * 1000, // 2 minutes
   max: 7, // 5 login attempts per window
@@ -12,9 +13,10 @@ const login = rateLimit({
   },
 });
 
+// API Rate Limiter
 const api = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 300, //  change to 100
+  max: 200, //  200 API requests per window
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next) => {

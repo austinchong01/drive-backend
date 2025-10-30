@@ -8,7 +8,10 @@ const {
 
 const prisma = new PrismaClient();
 
-// Helper
+/**
+ * (HELPER FUNCTION)
+ * Finds folder ID by name
+ */
 async function findFolderId(name, userId) {
   const rootFolder = await prisma.folder.findFirst({
     where: {
@@ -20,17 +23,20 @@ async function findFolderId(name, userId) {
   return rootFolder.id;
 }
 
+/**
+ * Upload file to Cloudinary and save metadata to database
+ * Validates storage quota
+ */
 async function createFile(req, res, next) {
-  // check if folder exists?
   if (!req.file) return next(new BadRequestError("No file uploaded"));
 
   const userId = req.user.userId;
   let folderId = req.params.folderId;
-  if (!folderId) folderId = await findFolderId("root", userId);
+  if (!folderId) folderId = await findFolderId("root", userId); // "undefined" is "root" folder
   const maxBytes = 10000000; // 10MB
 
+  // Validate user storage quota
   const checkStorage = await prisma.user.findFirst({
-    // also validates userId
     where: { id: userId },
     select: { storage: true },
   });
@@ -46,7 +52,7 @@ async function createFile(req, res, next) {
     resource_type: "auto",
   });
 
-  // Save to database in transaction
+  // Save file metadata and update user storage in single transaction
   try {
     const [newFile] = await prisma.$transaction([
       prisma.file.create({
@@ -73,7 +79,7 @@ async function createFile(req, res, next) {
       file: newFile,
     });
   } catch (dbError) {
-    // Clean up Cloudinary if database fails
+    // Rollback: clean up Cloudinary if database operation fails
     await cloudinary.uploader.destroy(result.public_id, {
       resource_type: result.resource_type,
     });
@@ -82,8 +88,12 @@ async function createFile(req, res, next) {
   }
 }
 
+/**
+ * Update filename
+ * Validates duplicate names within same folder
+ */
 async function updateFilename(req, res, next) {
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
   const { fileId } = req.params;
   const { name } = req.body;
 
@@ -108,11 +118,15 @@ async function updateFilename(req, res, next) {
   }
 }
 
+/**
+ * Move file to different folder
+ * Validates duplicate names and same location
+ */
 async function updateFileLoc(req, res, next) {
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
   const { fileId } = req.params;
   let { newParentId } = req.body;
-  if (!newParentId) newParentId = await findFolderId("root", userId);
+  if (!newParentId) newParentId = await findFolderId("root", userId); // "undefined" is "root" folder
 
   try {
     // Check if already in the target location
@@ -148,8 +162,12 @@ async function updateFileLoc(req, res, next) {
   }
 }
 
+/**
+ * Delete file from database and Cloudinary
+ * Updates user storage
+ */
 async function deleteFile(req, res, next) {
-  const userId = req.user.userId; // JWT
+  const userId = req.user.userId;
   const { fileId } = req.params;
 
   const fileToDelete = await prisma.file.findUnique({
@@ -163,12 +181,12 @@ async function deleteFile(req, res, next) {
 
   if (!fileToDelete) return next(new NotFoundError("File not found"));
 
-  // Remove from cloudinary. Does not delete from database if fails
+  // Remove from Cloudinary first
   await cloudinary.uploader.destroy(fileToDelete.cloudinaryPublicId, {
     resource_type: fileToDelete.cloudinaryResourceType,
   });
 
-  // Delete from database in transaction
+  // Delete from database and update storage quota in transaction
   await prisma.$transaction([
     prisma.file.delete({ where: { id: fileId } }),
     prisma.user.update({

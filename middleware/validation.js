@@ -1,6 +1,7 @@
 const { body, query, validationResult } = require("express-validator");
 const { BadRequestError } = require("../errors/CustomError");
 
+// Validates user registration data (username, email, password).
 const validateUser = [
   body("username")
     .trim()
@@ -40,6 +41,7 @@ const validateUser = [
   },
 ];
 
+// Validates login credentials (email, password)
 const validateLogin = [
   body("email")
     .notEmpty()
@@ -58,6 +60,7 @@ const validateLogin = [
   },
 ];
 
+// Validates name field for files/folders
 const validateName = [
   body("name")
     .trim()
@@ -80,6 +83,7 @@ const validateName = [
   },
 ];
 
+// Validates search query
 const validateSearch = [
   query("q")
     .trim()
