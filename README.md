@@ -1,31 +1,10 @@
-## Mock Google Drive (backend)
+Mock Google Drive (backend)
+========
 
-README details here: https://github.com/austinchong01/drive-frontend
-
-Core Functionalities
-
-- User
-  - create/read/rename/delete
-  - register/login/logout
-    - JWT session management
-  - 10MB of storage (MAX)
-- File
-  - create/rename/move/delete
-  - unique name within folder
-  - preview and download
-- Folder
-  - create/rename/move/delete
-  - unique name within folder
-  - store files and folders
-  - breadcrumb path
-  - home is root folder (folderId = "root")
-    - create on user register
-- Other
-  - file/folder search
-
+## README details here: https://github.com/austinchong01/drive-frontend
 
 API Endpoints
-
+--------
 - Users
   - POST /auth/register
     - register a user
@@ -96,11 +75,9 @@ Implementation
   - transactions
 - Testing
 
-Frontend
-- Breadcrumb navigation
-- Drag and Drop
-
-Nice to Haves:
+Nice to Haves
+--------
 - share files
 - favorite files
 - organize/filters
+- pagination
