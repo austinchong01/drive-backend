@@ -1,7 +1,7 @@
 Mock Google Drive (backend)
 ========
 
-## README details here: https://github.com/austinchong01/drive-frontend
+### README details here: https://github.com/austinchong01/drive-frontend
 
 API Endpoints
 --------
