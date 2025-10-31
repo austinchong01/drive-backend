@@ -1,7 +1,7 @@
 Mock Google Drive (backend)
 ========
 
-A RESTful API backend for a Google Drive clone built with Node.js, Express, Prisma, and PostgreSQL. Supports user authentication, file uploads to Cloudinary, folder management, and search functionality.
+A RESTful API backend for a Google Drive clone built with Node.js, Express, Prisma, and PostgreSQL. Supports user authentication, file uploads to Cloudinary, folder management, and search functionality. 
 
 ### Full README - https://github.com/austinchong01/drive-frontend
 
@@ -55,3 +55,12 @@ API Endpoints
 |--------|----------|-------------|
 | `GET` | `/health` | Server health check and status |
 
+---
+
+Testing
+--------
+This project includes integrated tests to ensure API reliability and functionality. Tests can be run using:
+
+```bash
+npm test
+```
