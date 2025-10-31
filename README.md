@@ -14,12 +14,12 @@ API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/auth/register` | Register a new user account and create root folder |
-| `POST` | `/auth/login` | Authenticate user and return JWT token |
-| `GET` | `/auth/verify` | Verify JWT token validity |
-| `GET` | `/profile` | Get user profile information (username and storage usage) |
+| `POST` | `/auth/register` | Register user, create root folder, and create token |
+| `POST` | `/auth/login` | Authenticate user and return token  |
+| `GET` | `/auth/verify` | Verify JWT token |
+| `GET` | `/profile` | Get user profile information (username and storage) |
 | `PATCH` | `/profile` | Update username |
-| `DELETE` | `/profile` | Delete user account and all associated data |
+| `DELETE` | `/profile` | Delete user |
 
 ---
 
@@ -27,10 +27,10 @@ API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/files/:folderId?/upload` | Upload a file to specified folder (or root if no folderId) |
-| `PATCH` | `/files/:fileId/updateFileName` | Rename a file |
-| `PATCH` | `/files/:fileId/updateFileLocation` | Move file to different folder |
-| `DELETE` | `/files/:fileId` | Delete a file from database and Cloudinary |
+| `POST` | `/files/:folderId?/upload` | Upload file to folder (or root if no folderId) |
+| `PATCH` | `/files/:fileId/updateFileName` | Rename file |
+| `PATCH` | `/files/:fileId/updateFileLocation` | Move file |
+| `DELETE` | `/files/:fileId` | Delete file |
 
 ---
 
@@ -38,11 +38,11 @@ API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/folders/:folderId?/upload` | Create a new folder in specified parent (or root if no folderId) |
-| `GET` | `/folders/:folderId?` | Get folder contents (subfolders and files) |
-| `GET` | `/folders/:folderId?/crumbs` | Get breadcrumb navigation path from current folder to root |
-| `PATCH` | `/folders/:folderId/updateFolderName` | Rename a folder |
-| `PATCH` | `/folders/:folderId/updateFolderLocation` | Move folder to different parent folder |
+| `POST` | `/folders/:folderId/upload` | Create folder in folder (or root if no folderId) |
+| `GET` | `/folders/:folderId` | Get folder contents (subfolders and files) |
+| `GET` | `/folders/:folderId/crumbs` | Get breadcrumb path |
+| `PATCH` | `/folders/:folderId/updateFolderName` | Rename folder |
+| `PATCH` | `/folders/:folderId/updateFolderLocation` | Move folder |
 | `DELETE` | `/folders/:folderId` | Delete folder and all nested contents |
 
 ---
@@ -62,10 +62,3 @@ API Endpoints
 | `GET` | `/health` | Server health check and status |
 
 ---
-
-Nice to Haves
---------
-- Share files
-- Favorite files
-- Organize/filters
-- Pagination
