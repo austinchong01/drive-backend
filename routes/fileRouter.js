@@ -16,17 +16,17 @@ router.post(
 );
 
 router.patch(
-  "/:fileId?/updateFileName",
+  "/:fileId/updateFileName",
   authenticateToken,
   val.validateName,
   file.updateFilename
 );
 router.patch(
-  "/:fileId?/updateFileLocation",
+  "/:fileId/updateFileLocation",
   authenticateToken,
   file.updateFileLoc
 );
 
-router.delete("/:fileId?", authenticateToken, file.deleteFile);
+router.delete("/:fileId", authenticateToken, file.deleteFile);
 
 module.exports = router;

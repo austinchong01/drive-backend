@@ -14,13 +14,14 @@ router.post(
   folder.createFolder
 );
 
+router.get("/:folderId?", authenticateToken, limiter.api, folder.getContents);
+
 router.get(
   "/:folderId?/crumbs",
   authenticateToken,
   limiter.api,
   folder.getBreadCrumbs
 );
-router.get("/:folderId?", authenticateToken, limiter.api, folder.getContents);
 
 router.patch(
   "/:folderId?/updateFolderName",
