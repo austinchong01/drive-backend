@@ -21,7 +21,6 @@ API Endpoints
 | `PATCH` | `/profile` | Update username |
 | `DELETE` | `/profile` | Delete user |
 
----
 
 ### File Routes
 
@@ -31,8 +30,6 @@ API Endpoints
 | `PATCH` | `/files/:fileId/updateFileName` | Rename file |
 | `PATCH` | `/files/:fileId/updateFileLocation` | Move file |
 | `DELETE` | `/files/:fileId` | Delete file |
-
----
 
 ### Folder Routes
 
@@ -45,15 +42,12 @@ API Endpoints
 | `PATCH` | `/folders/:folderId/updateFolderLocation` | Move folder |
 | `DELETE` | `/folders/:folderId` | Delete folder and all nested contents |
 
----
-
 ### API Routes
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/search?q={query}` | Search for folders and files by name |
 
----
 
 ### Health Check
 
@@ -61,4 +55,3 @@ API Endpoints
 |--------|----------|-------------|
 | `GET` | `/health` | Server health check and status |
 
----
