@@ -1,4 +1,4 @@
-Mock Google Drive (backend)
+Google Drive Clone (backend)
 ========
 
 A RESTful API backend for a Google Drive clone built with Node.js, Express, Prisma, and PostgreSQL. Supports user authentication, file uploads to Cloudinary, folder management, and search functionality. 
